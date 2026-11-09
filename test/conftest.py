@@ -40,30 +40,6 @@ def profile_is_loaded():
 
 
 @pytest.fixture
-def an_empty_policy():
-    """Hand a test an empty policy, and give the host its own policy back after."""
-    policy = REPO / ".devcontainer/config.toml"
-    kept = policy.read_bytes() if policy.exists() else None
-    policy.write_text("# empty\n")
-
-    yield policy
-
-    subprocess.run(
-        [
-            "docker", "compose",
-            "-f", REPO / ".devcontainer/compose.yaml",
-            "-f", REPO / ".devcontainer/compose.dev.yaml",
-            "rm", "--stop", "--force", "gateway",
-        ],
-        check=True,
-    )
-    if kept is None:
-        policy.unlink()
-    else:
-        policy.write_bytes(kept)
-
-
-@pytest.fixture
 def a_host_that_has_run_o3s():
     """Leave this host holding the installed profile, as a restart that empties the kernel does."""
     raised = devcontainer_up()
