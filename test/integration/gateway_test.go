@@ -16,6 +16,7 @@ func TestTheGatewayComesUpHealthyOnAnEmptyPolicy(t *testing.T) {
 
 	err := stacktest.Up(t, "gateway")
 
+	// Report a gateway that fails to report healthy
 	if err != nil {
 		t.Errorf("Up(gateway) on an empty policy = %v, want the gateway healthy", err)
 	}
@@ -24,21 +25,26 @@ func TestTheGatewayComesUpHealthyOnAnEmptyPolicy(t *testing.T) {
 // On an empty policy the gateway forwards replies alone and rejects every new connection.
 func TestTheGatewayRejectsEveryNewConnectionOnAnEmptyPolicy(t *testing.T) {
 	stacktest.AnEmptyPolicy(t)
+	// Stop when the gateway fails to come up
 	if err := stacktest.Up(t, "gateway"); err != nil {
 		t.Fatalf("Setup: Up(gateway): %v", err)
 	}
 
 	out, err := stacktest.Exec(t, "gateway", "iptables", "-S", "FORWARD")
 
+	// Stop when reading the rules fails
 	if err != nil {
 		t.Fatalf("Exec(gateway, iptables -S FORWARD) = %v", err)
 	}
 	rules := strings.Split(strings.TrimSpace(out), "\n")
+	// Check every rule in the chain
 	for _, rule := range rules {
+		// Flag an accepting rule that admits new connections
 		if strings.HasSuffix(rule, "-j ACCEPT") && !strings.Contains(rule, "--ctstate") {
 			t.Errorf("FORWARD accepts %q, want replies alone accepted", rule)
 		}
 	}
+	// Require the chain to close with a reject
 	if got, want := rules[len(rules)-1], "-A FORWARD -j REJECT --reject-with icmp-admin-prohibited"; got != want {
 		t.Errorf("last FORWARD rule = %q, want %q", got, want)
 	}
