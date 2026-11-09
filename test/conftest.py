@@ -40,11 +40,11 @@ def profile_is_loaded():
 
 
 @pytest.fixture
-def a_policy_that_allows_nothing():
-    """Hand a test a policy holding no host, and give the host its own policy back after."""
+def an_empty_policy():
+    """Hand a test an empty policy, and give the host its own policy back after."""
     policy = REPO / ".devcontainer/config.toml"
     kept = policy.read_bytes() if policy.exists() else None
-    policy.write_text("# allows nothing\n")
+    policy.write_text("# empty\n")
 
     yield policy
 

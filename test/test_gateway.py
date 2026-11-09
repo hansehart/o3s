@@ -1,7 +1,6 @@
 """Cover the gateway this branch builds, raised on its own from the dev stack.
 
-The daily stack pulls the published gateway, so these tests build it from images/gateway and
-start it alone, with no cage behind it.
+The daily stack pulls the published gateway, so these tests build it from images/gateway.
 """
 
 import subprocess
@@ -10,7 +9,7 @@ from conftest import REPO
 
 
 def gateway_up():
-    """Build the gateway from this branch and wait until it reports healthy, or report why not."""
+    """Build the gateway from this branch, wait until it reports healthy, and hand back what compose printed."""
     return subprocess.run(
         [
             "docker", "compose",
@@ -23,8 +22,8 @@ def gateway_up():
     )
 
 
-def test_the_gateway_comes_up_healthy_on_a_policy_that_allows_nothing(a_policy_that_allows_nothing):
-    """A policy without a single host raises a gateway that stays healthy and denies everything."""
+def test_the_gateway_comes_up_healthy_on_an_empty_policy(an_empty_policy):
+    """An empty policy raises a gateway that reports healthy and rejects every connection."""
     raising = gateway_up()
 
     assert raising.returncode == 0, raising.stdout + raising.stderr

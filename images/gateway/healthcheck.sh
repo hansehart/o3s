@@ -5,8 +5,8 @@
 #
 # DESCRIPTION
 #        Resolves the first allow-listed host through the local resolver and opens a real
-#        connection to it, so the cage starts only once egress works. A policy that allows
-#        nothing leaves no egress to probe, so the resolver running is the whole report.
+#        connection to it, so the cage starts once egress works. On an empty policy it checks
+#        that the resolver runs, which starts after the firewall is in place.
 #
 # SEE ALSO
 #        compose.yaml, entrypoint.sh
@@ -17,7 +17,7 @@ die() { echo "[healthcheck] ERROR: $*" >&2; exit 1; }
 
 # Probe the first allow-listed host by connecting to its address on its first port.
 read -r ADDR PORT < <(yq -p=toml -o=tsv '[ to_entries | .[0] | [.key, (.value.ports | .[0])] ]' /config/config.toml) || true
-# Report a policy that allows nothing healthy once the resolver runs, which follows the firewall.
+# On an empty policy, report healthy once the resolver runs, which starts after the firewall.
 if [ -z "$ADDR" ] || [ -z "$PORT" ]; then
   pgrep -x dnsmasq > /dev/null || die "dnsmasq is not running"
   exit 0
