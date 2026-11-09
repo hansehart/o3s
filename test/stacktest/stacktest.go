@@ -55,6 +55,7 @@ func compose(t testing.TB, args ...string) (string, error) {
 // once the test ends.
 func Up(t testing.TB, services ...string) error {
 	t.Helper()
+	anEnv(t)
 	t.Cleanup(func() {
 		if _, err := compose(t, append([]string{"rm", "--stop", "--force"}, services...)...); err != nil {
 			t.Errorf("Cleanup: %v", err)
@@ -62,6 +63,25 @@ func Up(t testing.TB, services ...string) error {
 	})
 	_, err := compose(t, append([]string{"up", "--build", "--wait", "--wait-timeout", "60"}, services...)...)
 	return err
+}
+
+// anEnv hands compose the values the host generates before every start, as initialize.sh does. It
+// writes them when the checkout holds none, and removes what it wrote once the test ends.
+func anEnv(t testing.TB) {
+	t.Helper()
+	env := filepath.Join(Repo(t), ".devcontainer/.env")
+	if _, err := os.Stat(env); err == nil {
+		return
+	}
+	values := fmt.Sprintf("O3S_MARKER=o3s-stacktest\nO3S_UID=%d\nO3S_GID=%d\n", os.Getuid(), os.Getgid())
+	if err := os.WriteFile(env, []byte(values), 0o644); err != nil {
+		t.Fatalf("Setup: write %s: %v", env, err)
+	}
+	t.Cleanup(func() {
+		if err := os.Remove(env); err != nil {
+			t.Errorf("Cleanup: remove %s: %v", env, err)
+		}
+	})
 }
 
 // Exec runs a command in a running service and hands back what it printed.
