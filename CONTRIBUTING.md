@@ -1,6 +1,6 @@
 # Contributing
 
-## Workflow
+## I. Workflow
 
 - **Changes** ideally start as an issue, are made on their own branch, and land on main through a pull request as one squashed commit.
 - **Commits** start with the kind of change and its scope, followed by a short summary.
@@ -9,17 +9,17 @@
 - **Versions** are left to the release bot, whose pull request raises the first number for breaking changes, the second for new features, and the third for fixes.
 - **Releases** go out when the release bot's pull request merges.
 
-## Code
+## II. Code
 
 - **Comments** state a step's intent, in abstract terms, so they stay accurate as the concrete details change. Every branch and loop carries one, on the line above it.
 - **Tests** come first, so a change starts with a test that fails without it, and the implementation then makes it pass.
 
-## Releases
+## III. Releases
 
 - **Scopes** of commits come from `.commitlintrc.json`, one per area such as `gateway` or `repo`.
 - **Images** reach ghcr.io with every release, tagged with its version.
 
-## Tests
+## IV. Tests
 
 - **Refactors** follow each passing test and keep every test as it is.
 - **Layers** run from many unit tests next to their code, through integration tests in `test/integration` that raise one component, to a few e2e tests in `test/e2e` that raise the whole stack. The build tags `integration` and `e2e` keep `go test ./...` fast.
