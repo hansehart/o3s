@@ -15,7 +15,8 @@
 ## Releases
 
 - **Versions** are left to the release-please bot, whose pull request raises the first number for breaking changes, the second for new features, and the third for fixes.
-- **Releases** go out when that pull request merges, and publish the artifacts the repository standards name.
+- **Releases** go out when that pull request merges.
+- **Images** reach ghcr.io with every release, tagged with their version.
 
 ## Tests
 
@@ -24,7 +25,3 @@
 - **Bodies** check one behavior each, in setup, action and check set apart by blank lines.
 - **Checks** use the standard library and go-cmp, compare whole values, test errors by identity, and report what they got against what they wanted.
 - **Helpers** set up a named state and undo it once the test ends, and fakes live where they are used, held to the real adapter by a contract test.
-
-## Artifacts
-
-- **Images** reach ghcr.io with every release, tagged with their version.
