@@ -3,12 +3,15 @@ package stacktest
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
-// The profile the cage runs under, where the kernel lays out what it holds, and where the host
-// keeps the profile it loads at boot.
+// The stack and gateway built from this branch, the profile the cage runs under, where the kernel
+// lays out what it holds, and where the host keeps the profile it loads at boot.
 const (
+	devProject       = "o3s-dev"
+	devGateway       = "o3s-gateway:dev"
 	profileName      = "o3s-cage"
 	kernelPolicy     = "/sys/kernel/security/apparmor/policy/profiles"
 	installedProfile = "/etc/apparmor.d/" + profileName
@@ -23,6 +26,15 @@ func AHostThatLostTheProfile(tb testing.TB) {
 	// Stop when the stack fails to come up
 	if err != nil {
 		tb.Fatalf("Setup: %v", err)
+	}
+	gateways, err := run(tb.Context(), tb, "docker", "ps", "--filter", "label=com.docker.compose.service=gateway", "--format", "{{.Label \"com.docker.compose.project\"}} {{.Image}}")
+	// Stop when the running gateways stay unread
+	if err != nil {
+		tb.Fatalf("Setup: %v", err)
+	}
+	// Require the gateway built from this branch, so the test covers the code under review
+	if !strings.Contains(gateways, devProject+" "+devGateway) {
+		tb.Fatalf("Setup: the stack runs no gateway built from this branch, running:\n%s", gateways)
 	}
 	// Require a loaded profile first, so its absence below carries weight
 	if !profileIsLoaded(tb) {
