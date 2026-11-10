@@ -118,8 +118,6 @@ parse_allowlist() {
     DOMAIN_LINES+=("server=/$domain/$UPSTREAM_DNS")
     DOMAIN_LINES+=("ipset=/$domain/${DOMAIN_SETS[$domain]}")
   done
-
-  [ -n "$PORTS" ] || die "config file $CONFIG_FILE has no hosts"
 }
 
 # One set per port, holding resolved hosts and static subnets alike so either matches a packet.

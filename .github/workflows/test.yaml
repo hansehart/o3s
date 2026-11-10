@@ -32,6 +32,15 @@ jobs:
       - name: Require AppArmor
         run: aa-enabled
 
+      # install the Go toolchain go.mod names
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      # run the tests that raise one component of the stack, built from this branch
+      - name: Run the integration tests
+        run: go test -tags integration -count=1 -v ./test/integration/...
+
       # install the CLI this host's editor raises the stack with
       - name: Install the dev container CLI
         run: npm install -g @devcontainers/cli
