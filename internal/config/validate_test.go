@@ -15,16 +15,16 @@ func TestAllowRejectsAChangeOutsideTheRules(t *testing.T) {
 		name   string
 		change config.Change
 	}{
-		{name: "uppercase host", change: config.Change{Name: "GitHub.com"}},
-		{name: "host with a scheme", change: config.Change{Name: "https://github.com"}},
+		{name: "uppercase host", change: config.Change{Name: "Example.com"}},
+		{name: "host with a scheme", change: config.Change{Name: "https://example.com"}},
 		{name: "wildcard inside a label", change: config.Change{Name: "api.*.example.com"}},
 		{name: "IPv6 address", change: config.Change{Name: "::1"}},
-		{name: "CIDR beyond 32 bits", change: config.Change{Name: "10.0.0.0/33"}},
-		{name: "port zero", change: config.Change{Name: "github.com", Ports: []int{0}}},
-		{name: "port past the range", change: config.Change{Name: "github.com", Ports: []int{65536}}},
-		{name: "lowercase secret", change: config.Change{Name: "api.openai.com", Secret: "openai_key"}},
-		{name: "unknown inject site", change: config.Change{Name: "api.openai.com", Secret: "OPENAI_API_KEY", Inject: []string{"cookie"}}},
-		{name: "inject without a secret", change: config.Change{Name: "api.openai.com", Inject: []string{"header"}}},
+		{name: "CIDR beyond 32 bits", change: config.Change{Name: "192.0.2.0/33"}},
+		{name: "port zero", change: config.Change{Name: "example.com", Ports: []int{0}}},
+		{name: "port past the range", change: config.Change{Name: "example.com", Ports: []int{65536}}},
+		{name: "lowercase secret", change: config.Change{Name: "api.example.net", Secret: "example_key"}},
+		{name: "unknown inject site", change: config.Change{Name: "api.example.net", Secret: "EXAMPLE_NET_KEY", Inject: []string{"cookie"}}},
+		{name: "inject without a secret", change: config.Change{Name: "api.example.net", Inject: []string{"header"}}},
 	}
 	// Check every change against the same empty config
 	for _, tt := range tests {
@@ -47,7 +47,7 @@ func TestAllowRejectsAChangeOutsideTheRules(t *testing.T) {
 
 // A change inside the allowlist's rules goes through, whatever form of host it names.
 func TestAllowAcceptsEveryFormOfHost(t *testing.T) {
-	names := []string{"github.com", "*.docker.io", "10.20.0.5", "10.20.0.0/16"}
+	names := []string{"example.com", "*.cdn.example.org", "192.0.2.6", "198.51.100.0/24"}
 	// Check every form against its own empty config
 	for _, name := range names {
 		t.Run(name, func(t *testing.T) {

@@ -14,11 +14,11 @@ import (
 // anUnorderedConfig hands a test a config whose hosts and stores sit out of order.
 func anUnorderedConfig() config.Config {
 	return config.Config{
-		Stores: []config.Store{{ID: "ghcr.io/hansehart/devcontainer-features"}, {ID: "ghcr.io/devcontainers/features"}},
+		Stores: []config.Store{{ID: "registry.example.net/features"}, {ID: "registry.example.com/features"}},
 		Hosts: []config.Host{
-			{Name: "10.20.0.0/16", Ports: []int{443}, By: []string{"user"}},
-			{Name: "api.openai.com", Ports: []int{443}, Secret: "OPENAI_API_KEY", Inject: []string{"header", "body"}, By: []string{"user"}},
-			{Name: "github.com", Ports: []int{22, 443}, By: []string{"user"}},
+			{Name: "198.51.100.0/24", Ports: []int{443}, By: []string{"user"}},
+			{Name: "api.example.net", Ports: []int{443}, Secret: "EXAMPLE_NET_KEY", Inject: []string{"header", "body"}, By: []string{"user"}},
+			{Name: "example.com", Ports: []int{22, 443}, By: []string{"user"}},
 		},
 	}
 }

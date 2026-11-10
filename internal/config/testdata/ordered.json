@@ -2,15 +2,15 @@
   "$schema": "./.o3s/o3s.schema.json",
   "stores": [
     {
-      "id": "ghcr.io/devcontainers/features"
+      "id": "registry.example.com/features"
     },
     {
-      "id": "ghcr.io/hansehart/devcontainer-features"
+      "id": "registry.example.net/features"
     }
   ],
   "hosts": [
     {
-      "name": "github.com",
+      "name": "example.com",
       "ports": [
         22,
         443
@@ -20,11 +20,11 @@
       ]
     },
     {
-      "name": "api.openai.com",
+      "name": "api.example.net",
       "ports": [
         443
       ],
-      "secret": "OPENAI_API_KEY",
+      "secret": "EXAMPLE_NET_KEY",
       "inject": [
         "header",
         "body"
@@ -34,7 +34,7 @@
       ]
     },
     {
-      "name": "10.20.0.0/16",
+      "name": "198.51.100.0/24",
       "ports": [
         443
       ],

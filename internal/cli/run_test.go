@@ -37,10 +37,10 @@ func TestRunExitsWithAStatusPerOutcome(t *testing.T) {
 		args []string
 		want int
 	}{
-		{name: "success", args: []string{"firewall", "add", "github.com"}, want: 0},
+		{name: "success", args: []string{"firewall", "add", "example.com"}, want: 0},
 		{name: "usage error", args: []string{"firewall", "add"}, want: 2},
-		{name: "rule broken", args: []string{"firewall", "add", "GitHub.com"}, want: 2},
-		{name: "failure", args: []string{"firewall", "rm", "example.com"}, want: 1},
+		{name: "rule broken", args: []string{"firewall", "add", "Example.com"}, want: 2},
+		{name: "failure", args: []string{"firewall", "rm", "absent.example"}, want: 1},
 	}
 	// Check every outcome in its own home
 	for _, tt := range tests {
@@ -61,15 +61,15 @@ func TestRunExitsWithAStatusPerOutcome(t *testing.T) {
 func TestRunWritesTheHomeItRunsIn(t *testing.T) {
 	aHome(t)
 
-	status, errOut := run(t, "firewall", "add", "github.com")
+	status, errOut := run(t, "firewall", "add", "example.com")
 
 	// Stop when the command fails
 	if status != 0 {
-		t.Fatalf("Run(firewall add github.com) = %d, stderr:\n%s", status, errOut)
+		t.Fatalf("Run(firewall add example.com) = %d, stderr:\n%s", status, errOut)
 	}
 	data, err := os.ReadFile(filepath.Join(".", config.File))
 	// Require the host in the file
-	if err != nil || !strings.Contains(string(data), `"github.com"`) {
-		t.Errorf("home file = %q, %v, want github.com in it", data, err)
+	if err != nil || !strings.Contains(string(data), `"example.com"`) {
+		t.Errorf("home file = %q, %v, want example.com in it", data, err)
 	}
 }

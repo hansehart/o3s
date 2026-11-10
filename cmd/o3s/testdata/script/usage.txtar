@@ -16,7 +16,7 @@ stderr 'for usage'
 stderr 'accepts 1 arg'
 
 # A malformed flag is a usage error
-! exec o3s firewall add github.com --port twenty
+! exec o3s firewall add example.com --port twenty
 stderr 'invalid argument "twenty"'
 stderr 'for usage'
 

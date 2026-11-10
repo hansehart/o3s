@@ -8,11 +8,11 @@ cmp stdout want.txt
   "$schema": "./.o3s/o3s.schema.json",
   "stores": [],
   "hosts": [
-    {"name": "github.com", "ports": [22, 443], "by": ["user"]},
-    {"name": "api.openai.com", "ports": [443], "secret": "OPENAI_API_KEY", "inject": ["header"], "by": ["ghcr.io/hansehart/devcontainer-features/codex"]}
+    {"name": "example.com", "ports": [22, 443], "by": ["user"]},
+    {"name": "api.example.net", "ports": [443], "secret": "EXAMPLE_NET_KEY", "inject": ["header"], "by": ["registry.example.com/features/alpha"]}
   ]
 }
 -- want.txt --
-HOST            PORTS   SECRET          BY
-github.com      22,443                  user
-api.openai.com  443     OPENAI_API_KEY  ghcr.io/hansehart/devcontainer-features/codex
+HOST             PORTS   SECRET           BY
+example.com      22,443                   user
+api.example.net  443     EXAMPLE_NET_KEY  registry.example.com/features/alpha
