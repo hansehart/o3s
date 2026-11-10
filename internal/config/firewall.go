@@ -142,3 +142,13 @@ func joinInts(ns []int) string {
 	}
 	return strings.Join(parts, ",")
 }
+
+// Find hands back the host of a name, and whether the allowlist holds it.
+func (c *Config) Find(name string) (Host, bool) {
+	i := slices.IndexFunc(c.Hosts, func(h Host) bool { return h.Name == name })
+	// Report a host the allowlist lacks
+	if i < 0 {
+		return Host{}, false
+	}
+	return c.Hosts[i], true
+}

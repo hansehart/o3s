@@ -1,0 +1,54 @@
+# A host the user alone needs leaves the allowlist
+exec o3s firewall rm github.com
+stdout '^Removed github.com$'
+
+# A host a feature still needs stays, and the feature is named
+exec o3s firewall rm api.openai.com
+stdout '^Kept api.openai.com, still needed by ghcr.io/hansehart/devcontainer-features/codex$'
+
+# The file holds the host for the feature alone
+cmp o3s.json want.json
+
+# A host only features brought stays with them
+! exec o3s firewall rm api.anthropic.com
+stderr 'needed by features alone'
+
+# A host the allowlist lacks is turned away
+! exec o3s firewall rm example.com
+stderr 'unknown host example.com'
+
+-- o3s.json --
+{
+  "$schema": "./.o3s/o3s.schema.json",
+  "stores": [],
+  "hosts": [
+    {"name": "api.anthropic.com", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/claude-code"]},
+    {"name": "github.com", "ports": [22, 443], "by": ["user"]},
+    {"name": "api.openai.com", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/codex", "user"]}
+  ]
+}
+-- want.json --
+{
+  "$schema": "./.o3s/o3s.schema.json",
+  "stores": [],
+  "hosts": [
+    {
+      "name": "api.anthropic.com",
+      "ports": [
+        443
+      ],
+      "by": [
+        "ghcr.io/hansehart/devcontainer-features/claude-code"
+      ]
+    },
+    {
+      "name": "api.openai.com",
+      "ports": [
+        443
+      ],
+      "by": [
+        "ghcr.io/hansehart/devcontainer-features/codex"
+      ]
+    }
+  ]
+}

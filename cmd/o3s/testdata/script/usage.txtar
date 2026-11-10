@@ -1,0 +1,28 @@
+# Without arguments o3s shows its commands
+exec o3s
+stdout 'firewall'
+
+# A group without an action is a usage error
+! exec o3s firewall
+stderr 'for usage'
+
+# An unknown action is a usage error
+! exec o3s firewall bogus
+stderr 'unknown command "bogus"'
+stderr 'for usage'
+
+# A missing host is a usage error
+! exec o3s firewall add
+stderr 'accepts 1 arg'
+
+# A malformed flag is a usage error
+! exec o3s firewall add github.com --port twenty
+stderr 'invalid argument "twenty"'
+stderr 'for usage'
+
+# A folder without an o3s home points at the command that starts one
+mkdir empty
+cd empty
+! exec o3s firewall ls
+stderr 'no o3s home'
+stderr 'o3s init'
