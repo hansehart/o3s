@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 )
 
@@ -35,11 +36,35 @@ func Repo(tb testing.TB) string {
 func compose(ctx context.Context, tb testing.TB, args ...string) (string, error) {
 	tb.Helper()
 	repo := Repo(tb)
-	return run(ctx, tb, "docker", append([]string{
+	files := []string{
 		"compose",
 		"-f", filepath.Join(repo, ".devcontainer/compose.yaml"),
 		"-f", filepath.Join(repo, ".devcontainer/compose.dev.yaml"),
-	}, args...)...)
+	}
+	// Layer the overlays the test arranged over the stack
+	for _, overlay := range overlaysOf(tb) {
+		files = append(files, "-f", overlay)
+	}
+	return run(ctx, tb, "docker", append(files, args...)...)
+}
+
+// overlays holds, per test, the compose files layered over the stack.
+var overlays sync.Map
+
+// anOverlay layers a compose file over the stack for the rest of the test.
+func anOverlay(tb testing.TB, path string) {
+	tb.Helper()
+	files, _ := overlays.LoadOrStore(tb, []string{})
+	overlays.Store(tb, append(files.([]string), path))
+	tb.Cleanup(func() { overlays.Delete(tb) })
+}
+
+// overlaysOf hands back the compose files a test layered over the stack.
+func overlaysOf(tb testing.TB) []string {
+	tb.Helper()
+	files, _ := overlays.Load(tb)
+	paths, _ := files.([]string)
+	return paths
 }
 
 // Up builds the services from this branch and waits until each reports healthy. It removes them
