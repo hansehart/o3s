@@ -15,8 +15,15 @@ set -euo pipefail
 
 die() { echo "[healthcheck] ERROR: $*" >&2; exit 1; }
 
+# Read the home's policy where the stack mounts it, and the old policy otherwise.
+if [ -f /config/o3s.json ]; then
+  FIRST_HOST=(-p=json '[ .hosts[0:1][] | [.name, .ports[0]] ]' /config/o3s.json)
+else
+  FIRST_HOST=(-p=toml '[ to_entries | .[0] | [.key, (.value.ports | .[0])] ]' /config/config.toml)
+fi
+
 # Probe the first allow-listed host by connecting to its address on its first port.
-read -r ADDR PORT < <(yq -p=toml -o=tsv '[ to_entries | .[0] | [.key, (.value.ports | .[0])] ]' /config/config.toml) || true
+read -r ADDR PORT < <(yq -o=tsv "${FIRST_HOST[@]}") || true
 # On an empty policy, report healthy once the resolver runs, which starts after the firewall.
 if [ -z "$ADDR" ] || [ -z "$PORT" ]; then
   pgrep -x dnsmasq > /dev/null || die "dnsmasq is not running"
