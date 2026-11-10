@@ -11,10 +11,10 @@ stdout '^  ~ ports 443 → 22,443$'
 stdout '^Allowed example.com:22,443$'
 
 # A secret goes where the inject sites name, or into the header
-exec o3s firewall add api.example.net --secret EXAMPLE_NET_KEY --inject header --inject body
-stdout '^Allowed api.example.net:443 with EXAMPLE_NET_KEY in header, body$'
-exec o3s firewall add api.example.org --secret EXAMPLE_ORG_KEY
-stdout '^Allowed api.example.org:443 with EXAMPLE_ORG_KEY in header$'
+exec o3s firewall add api.example.com --secret EXAMPLE_TOKEN --inject header --inject body
+stdout '^Allowed api.example.com:443 with EXAMPLE_TOKEN in header, body$'
+exec o3s firewall add example.org --secret EXAMPLE_TOKEN
+stdout '^Allowed example.org:443 with EXAMPLE_TOKEN in header$'
 
 # The file holds the hosts in apex order
 cmp o3s.json want.json
@@ -55,11 +55,11 @@ stderr 'inject without a secret'
       ]
     },
     {
-      "name": "api.example.net",
+      "name": "api.example.com",
       "ports": [
         443
       ],
-      "secret": "EXAMPLE_NET_KEY",
+      "secret": "EXAMPLE_TOKEN",
       "inject": [
         "header",
         "body"
@@ -69,11 +69,11 @@ stderr 'inject without a secret'
       ]
     },
     {
-      "name": "api.example.org",
+      "name": "example.org",
       "ports": [
         443
       ],
-      "secret": "EXAMPLE_ORG_KEY",
+      "secret": "EXAMPLE_TOKEN",
       "inject": [
         "header"
       ],

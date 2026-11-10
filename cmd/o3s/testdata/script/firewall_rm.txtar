@@ -3,14 +3,14 @@ exec o3s firewall rm example.com
 stdout '^Removed example.com$'
 
 # A host a feature still needs stays, and the feature is named
-exec o3s firewall rm api.example.net
-stdout '^Kept api.example.net, still needed by registry.example.com/features/alpha$'
+exec o3s firewall rm api.example.com
+stdout '^Kept api.example.com, still needed by registry.example.com/features/tool$'
 
 # The file holds the host for the feature alone
 cmp o3s.json want.json
 
 # A host only features brought stays with them
-! exec o3s firewall rm api.example.org
+! exec o3s firewall rm example.org
 stderr 'needed by features alone'
 
 # A host the allowlist lacks is turned away
@@ -22,9 +22,9 @@ stderr 'unknown host absent.example'
   "$schema": "./.o3s/o3s.schema.json",
   "stores": [],
   "hosts": [
-    {"name": "api.example.org", "ports": [443], "by": ["registry.example.com/features/beta"]},
+    {"name": "example.org", "ports": [443], "by": ["registry.example.com/features/tool"]},
     {"name": "example.com", "ports": [22, 443], "by": ["user"]},
-    {"name": "api.example.net", "ports": [443], "by": ["registry.example.com/features/alpha", "user"]}
+    {"name": "api.example.com", "ports": [443], "by": ["registry.example.com/features/tool", "user"]}
   ]
 }
 -- want.json --
@@ -33,21 +33,21 @@ stderr 'unknown host absent.example'
   "stores": [],
   "hosts": [
     {
-      "name": "api.example.net",
+      "name": "api.example.com",
       "ports": [
         443
       ],
       "by": [
-        "registry.example.com/features/alpha"
+        "registry.example.com/features/tool"
       ]
     },
     {
-      "name": "api.example.org",
+      "name": "example.org",
       "ports": [
         443
       ],
       "by": [
-        "registry.example.com/features/beta"
+        "registry.example.com/features/tool"
       ]
     }
   ]

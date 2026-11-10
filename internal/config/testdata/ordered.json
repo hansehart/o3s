@@ -5,7 +5,7 @@
       "id": "registry.example.com/features"
     },
     {
-      "id": "registry.example.net/features"
+      "id": "registry.example.org/features"
     }
   ],
   "hosts": [
@@ -20,11 +20,11 @@
       ]
     },
     {
-      "name": "api.example.net",
+      "name": "api.example.com",
       "ports": [
         443
       ],
-      "secret": "EXAMPLE_NET_KEY",
+      "secret": "EXAMPLE_TOKEN",
       "inject": [
         "header",
         "body"

@@ -22,9 +22,9 @@ func TestAllowRejectsAChangeOutsideTheRules(t *testing.T) {
 		{name: "CIDR beyond 32 bits", change: config.Change{Name: "192.0.2.0/33"}},
 		{name: "port zero", change: config.Change{Name: "example.com", Ports: []int{0}}},
 		{name: "port past the range", change: config.Change{Name: "example.com", Ports: []int{65536}}},
-		{name: "lowercase secret", change: config.Change{Name: "api.example.net", Secret: "example_key"}},
-		{name: "unknown inject site", change: config.Change{Name: "api.example.net", Secret: "EXAMPLE_NET_KEY", Inject: []string{"cookie"}}},
-		{name: "inject without a secret", change: config.Change{Name: "api.example.net", Inject: []string{"header"}}},
+		{name: "lowercase secret", change: config.Change{Name: "api.example.com", Secret: "example_token"}},
+		{name: "unknown inject site", change: config.Change{Name: "api.example.com", Secret: "EXAMPLE_TOKEN", Inject: []string{"cookie"}}},
+		{name: "inject without a secret", change: config.Change{Name: "api.example.com", Inject: []string{"header"}}},
 	}
 	// Check every change against the same empty config
 	for _, tt := range tests {
@@ -47,7 +47,7 @@ func TestAllowRejectsAChangeOutsideTheRules(t *testing.T) {
 
 // A change inside the allowlist's rules goes through, whatever form of host it names.
 func TestAllowAcceptsEveryFormOfHost(t *testing.T) {
-	names := []string{"example.com", "*.cdn.example.org", "192.0.2.6", "198.51.100.0/24"}
+	names := []string{"example.com", "*.example.org", "192.0.2.1", "198.51.100.0/24"}
 	// Check every form against its own empty config
 	for _, name := range names {
 		t.Run(name, func(t *testing.T) {

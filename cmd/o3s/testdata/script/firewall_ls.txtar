@@ -9,10 +9,10 @@ cmp stdout want.txt
   "stores": [],
   "hosts": [
     {"name": "example.com", "ports": [22, 443], "by": ["user"]},
-    {"name": "api.example.net", "ports": [443], "secret": "EXAMPLE_NET_KEY", "inject": ["header"], "by": ["registry.example.com/features/alpha"]}
+    {"name": "api.example.com", "ports": [443], "secret": "EXAMPLE_TOKEN", "inject": ["header"], "by": ["registry.example.com/features/tool"]}
   ]
 }
 -- want.txt --
-HOST             PORTS   SECRET           BY
-example.com      22,443                   user
-api.example.net  443     EXAMPLE_NET_KEY  registry.example.com/features/alpha
+HOST             PORTS   SECRET         BY
+example.com      22,443                 user
+api.example.com  443     EXAMPLE_TOKEN  registry.example.com/features/tool
