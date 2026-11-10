@@ -53,6 +53,11 @@ linters:
         linters:
           - gosec
         text: "G204|G306|G703"
+      # Let tests name secrets, which are the names of environment variables rather than credentials
+      - path: _test\.go$
+        linters:
+          - gosec
+        text: "G101"
 
 # Format with gofmt, which keeps the blank lines between a test's blocks, and group own imports apart
 formatters:

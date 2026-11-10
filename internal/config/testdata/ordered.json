@@ -1,0 +1,46 @@
+{
+  "$schema": "./.o3s/o3s.schema.json",
+  "stores": [
+    {
+      "id": "registry.example.com/features"
+    },
+    {
+      "id": "registry.example.org/features"
+    }
+  ],
+  "hosts": [
+    {
+      "name": "example.com",
+      "ports": [
+        22,
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "api.example.com",
+      "ports": [
+        443
+      ],
+      "secret": "EXAMPLE_TOKEN",
+      "inject": [
+        "header",
+        "body"
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "198.51.100.0/24",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+# The table lists every host with its ports, secret and who needs it
+exec o3s firewall ls
+cmp stdout want.txt
+! stderr .
+
+-- o3s.json --
+{
+  "$schema": "./.o3s/o3s.schema.json",
+  "stores": [],
+  "hosts": [
+    {"name": "example.com", "ports": [22, 443], "by": ["user"]},
+    {"name": "api.example.com", "ports": [443], "secret": "EXAMPLE_TOKEN", "inject": ["header"], "by": ["registry.example.com/features/tool"]}
+  ]
+}
+-- want.txt --
+HOST             PORTS   SECRET         BY
+example.com      22,443                 user
+api.example.com  443     EXAMPLE_TOKEN  registry.example.com/features/tool

@@ -1,0 +1,85 @@
+# A new host takes port 443 and needs no report of changed fields
+exec o3s firewall add example.com
+stdout '^Allowed example.com:443$'
+! stdout '~'
+! stderr .
+
+# An update lists each field it changed before it confirms
+exec o3s firewall add example.com --port 22 --port 443
+stdout '^example.com$'
+stdout '^  ~ ports 443 → 22,443$'
+stdout '^Allowed example.com:22,443$'
+
+# A secret goes where the inject sites name, or into the header
+exec o3s firewall add api.example.com --secret EXAMPLE_TOKEN --inject header --inject body
+stdout '^Allowed api.example.com:443 with EXAMPLE_TOKEN in header, body$'
+exec o3s firewall add example.org --secret EXAMPLE_TOKEN
+stdout '^Allowed example.org:443 with EXAMPLE_TOKEN in header$'
+
+# The file holds the hosts in apex order
+cmp o3s.json want.json
+
+# A host outside the rules is turned away as a usage error and leaves the file as it was
+! exec o3s firewall add Example.com
+stderr 'invalid host "Example.com"'
+stderr 'for usage'
+cmp o3s.json want.json
+
+# A port outside the range is turned away
+! exec o3s firewall add example.com --port 70000
+stderr 'invalid port 70000'
+
+# Inject sites without a secret are turned away
+! exec o3s firewall add absent.example --inject body
+stderr 'inject without a secret'
+
+-- o3s.json --
+{
+  "$schema": "./.o3s/o3s.schema.json",
+  "stores": [],
+  "hosts": []
+}
+-- want.json --
+{
+  "$schema": "./.o3s/o3s.schema.json",
+  "stores": [],
+  "hosts": [
+    {
+      "name": "example.com",
+      "ports": [
+        22,
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "api.example.com",
+      "ports": [
+        443
+      ],
+      "secret": "EXAMPLE_TOKEN",
+      "inject": [
+        "header",
+        "body"
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "example.org",
+      "ports": [
+        443
+      ],
+      "secret": "EXAMPLE_TOKEN",
+      "inject": [
+        "header"
+      ],
+      "by": [
+        "user"
+      ]
+    }
+  ]
+}
