@@ -19,7 +19,7 @@
 
 ## Tests
 
-- **Layers** run from many unit tests next to their code, through integration tests in `test/integration` that raise one component, to a few e2e tests in `test/e2e` that raise the whole stack, each behind its build tag so `go test ./...` stays fast.
+- **Layers** run from many unit tests next to their code, through integration tests in `test/integration` that raise one component, to a few e2e tests in `test/e2e` that raise the whole stack, each behind its build tag.
 - **Names** state the behavior under test, and a comment above each test repeats it as a sentence.
 - **Bodies** check one behavior each, in setup, action and check set apart by blank lines, and a refactor keeps every test as it is.
 - **Checks** use the standard library and go-cmp, compare whole values, test errors by identity, and report what they got against what they wanted.
