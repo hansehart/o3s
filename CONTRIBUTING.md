@@ -23,14 +23,11 @@
 
 ### Tests
 
-- **Refactors** follow each passing test and keep every test as it is.
-- **Layers** run from many unit tests next to their code, through integration tests in `test/integration` that raise one component, to a few e2e tests in `test/e2e` that raise the whole stack. The build tags `integration` and `e2e` keep `go test ./...` fast.
-- **Names** state the behavior under test, as in `TestTheGatewayComesUpHealthyOnAnEmptyPolicy`, and a comment above the test repeats it as a sentence.
-- **Bodies** check one behavior each, in three blocks of setup, action and check, set apart by blank lines.
-- **Failures** read `Func(input) = got, want want`, and larger values print `cmp.Diff(want, got)` as `(-want +got)`.
-- **Helpers** set up a state and are named after it, as in `stacktest.AnEmptyPolicy`. They call `t.Helper()`, fail setup with `t.Fatalf`, and undo their work with `t.Cleanup`.
-- **Checks** use the standard `testing` package and `go-cmp`, compare whole values, and test errors with `errors.Is`.
-- **Doubles** are fakes defined where they are used, and one contract test holds each fake to the real adapter.
+- **Layers** run from many unit tests next to their code, through integration tests in `test/integration` that raise one component, to a few e2e tests in `test/e2e` that raise the whole stack, each behind its build tag so `go test ./...` stays fast.
+- **Names** state the behavior under test, and a comment above each test repeats it as a sentence.
+- **Bodies** check one behavior each, in setup, action and check set apart by blank lines, and a refactor keeps every test as it is.
+- **Checks** use the standard library and go-cmp, compare whole values, test errors by identity, and report what they got against what they wanted.
+- **Helpers** set up a named state and undo it once the test ends, and fakes live where they are used, held to the real adapter by a contract test.
 
 ### Artifacts
 
