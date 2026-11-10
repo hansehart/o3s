@@ -1,0 +1,46 @@
+{
+  "$schema": "./.o3s/o3s.schema.json",
+  "stores": [
+    {
+      "id": "ghcr.io/devcontainers/features"
+    },
+    {
+      "id": "ghcr.io/hansehart/devcontainer-features"
+    }
+  ],
+  "hosts": [
+    {
+      "name": "github.com",
+      "ports": [
+        22,
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "api.openai.com",
+      "ports": [
+        443
+      ],
+      "secret": "OPENAI_API_KEY",
+      "inject": [
+        "header",
+        "body"
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "10.20.0.0/16",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    }
+  ]
+}
