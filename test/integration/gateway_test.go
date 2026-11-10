@@ -53,7 +53,7 @@ func TestTheGatewayRejectsEveryNewConnectionOnAnEmptyPolicy(t *testing.T) {
 // The gateway opens every port the home's policy names for a host.
 func TestTheGatewayOpensThePortsTheHomesPolicyNames(t *testing.T) {
 	stacktest.AnEmptyPolicy(t)
-	stacktest.AHomePolicy(t, `{"hosts": [{"name": "github.com", "ports": [22, 443], "by": ["user"]}]}`)
+	stacktest.AHomePolicy(t, `{"hosts": [{"name": "example.com", "ports": [443, 80], "by": ["user"]}]}`)
 	// Stop when the gateway fails to come up
 	if err := stacktest.Up(t, "gateway"); err != nil {
 		t.Fatalf("Setup: Up(gateway): %v", err)
@@ -66,7 +66,7 @@ func TestTheGatewayOpensThePortsTheHomesPolicyNames(t *testing.T) {
 		t.Fatalf("Exec(gateway, iptables -S FORWARD) = %v", err)
 	}
 	// Require an accepting rule for every port the policy names
-	for _, port := range []string{"22", "443"} {
+	for _, port := range []string{"443", "80"} {
 		// Flag a named port the chain leaves closed
 		if !acceptsPort(out, port) {
 			t.Errorf("FORWARD accepts nothing on port %s from its set, rules:\n%s", port, out)
@@ -90,7 +90,7 @@ func acceptsPort(rules, port string) bool {
 
 // The gateway follows the home's policy wherever the old policy still sits beside it.
 func TestTheGatewayPrefersTheHomesPolicyOverTheOldOne(t *testing.T) {
-	stacktest.AnOldPolicy(t, "[\"github.com\"]\nports = [8443]\n")
+	stacktest.AnOldPolicy(t, "[\"example.com\"]\nports = [8443]\n")
 	stacktest.AHomePolicy(t, `{"hosts": []}`)
 	// Stop when the gateway fails to come up
 	if err := stacktest.Up(t, "gateway"); err != nil {
