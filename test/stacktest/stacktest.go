@@ -15,7 +15,7 @@ import (
 	"testing"
 )
 
-// Repo finds the root of this checkout, the directory that holds go.mod.
+// Repo finds the root of this checkout, the directory that holds the module definition.
 func Repo(t testing.TB) string {
 	t.Helper()
 	dir, err := os.Getwd()
@@ -25,7 +25,7 @@ func Repo(t testing.TB) string {
 	}
 	// Walk up from the working directory to the root of the checkout
 	for {
-		// Hand back the first directory that holds go.mod
+		// Hand back the first directory that holds the module definition
 		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
 			return dir
 		}
@@ -71,7 +71,7 @@ func Up(t testing.TB, services ...string) error {
 	return err
 }
 
-// anEnv hands compose the values the host generates before every start, as initialize.sh does. It
+// anEnv hands compose the values the host generates before every start, as its start hook does. It
 // writes them when the checkout holds none, and removes what it wrote once the test ends.
 func anEnv(t testing.TB) {
 	t.Helper()
