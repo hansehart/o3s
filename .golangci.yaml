@@ -45,7 +45,6 @@ linters:
   # Drop the findings these presets know as false positives
   exclusions:
     presets:
-      - comments
       - std-error-handling
       - common-false-positives
     rules:
