@@ -1,18 +1,10 @@
-// Package stacktest raises parts of the o3s stack from this branch for the integration and e2e
-// tests, the way httptest raises a server for HTTP tests.
-//
-// It drives the docker compose CLI with the daily stack and its dev overlay, which builds the
-// images from this checkout, so a test exercises the code under review.
 package stacktest
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -43,18 +35,11 @@ func Repo(tb testing.TB) string {
 func compose(ctx context.Context, tb testing.TB, args ...string) (string, error) {
 	tb.Helper()
 	repo := Repo(tb)
-	cmd := exec.CommandContext(ctx, "docker", append([]string{
+	return run(ctx, tb, "docker", append([]string{
 		"compose",
 		"-f", filepath.Join(repo, ".devcontainer/compose.yaml"),
 		"-f", filepath.Join(repo, ".devcontainer/compose.dev.yaml"),
 	}, args...)...)
-	var stdout, stderr strings.Builder
-	cmd.Stdout, cmd.Stderr = &stdout, &stderr
-	// Hand back compose's own output along with the failure
-	if err := cmd.Run(); err != nil {
-		return stdout.String(), fmt.Errorf("docker compose %s: %w\n%s%s", strings.Join(args, " "), err, stdout.String(), stderr.String())
-	}
-	return stdout.String(), nil
 }
 
 // Up builds the services from this branch and waits until each reports healthy. It removes them
@@ -98,34 +83,4 @@ func anEnv(tb testing.TB) {
 func Exec(tb testing.TB, service string, command ...string) (string, error) {
 	tb.Helper()
 	return compose(tb.Context(), tb, append([]string{"exec", "-T", service}, command...)...)
-}
-
-// AnEmptyPolicy hands the stack a policy that holds no host, and gives the checkout its own policy
-// back once the test ends.
-func AnEmptyPolicy(tb testing.TB) {
-	tb.Helper()
-	policy := filepath.Join(Repo(tb), ".devcontainer/config.toml")
-	kept, err := os.ReadFile(policy)
-	existed := err == nil
-	// Stop when the policy exists yet reading it fails
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		tb.Fatalf("Setup: read %s: %v", policy, err)
-	}
-	// Stop when writing the empty policy fails
-	if err := os.WriteFile(policy, []byte("# empty\n"), 0o644); err != nil {
-		tb.Fatalf("Setup: write an empty policy to %s: %v", policy, err)
-	}
-	tb.Cleanup(func() {
-		var err error
-		// Restore the policy the checkout held, or remove the one the test wrote
-		if existed {
-			err = os.WriteFile(policy, kept, 0o644)
-		} else {
-			err = os.Remove(policy)
-		}
-		// Report a policy that outlives its test
-		if err != nil {
-			tb.Errorf("Cleanup: give %s back: %v", policy, err)
-		}
-	})
 }
