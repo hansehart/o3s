@@ -1,0 +1,65 @@
+version: "2"
+
+# Lint the tests behind their build tags as well
+run:
+  build-tags:
+    - integration
+    - e2e
+
+linters:
+  # Start from the standard set and add the linters most Go projects share
+  default: standard
+  enable:
+    - bodyclose
+    - errorlint
+    - exhaustive
+    - gocritic
+    - gosec
+    - misspell
+    - modernize
+    - nakedret
+    - noctx
+    - nolintlint
+    - revive
+    - thelper
+    - tparallel
+    - unconvert
+    - unparam
+    - usetesting
+    - whitespace
+  settings:
+    # Add the vet analyzers that find real bugs at little noise
+    govet:
+      enable:
+        - deepequalerrors
+        - nilness
+        - reflectvaluecompare
+        - sortslice
+        - unusedwrite
+    misspell:
+      locale: US
+    # Hold every exception to a named linter and a reason
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+  # Drop the findings these presets know as false positives
+  exclusions:
+    presets:
+      - std-error-handling
+      - common-false-positives
+    rules:
+      # Let the test harness run docker with its arguments and write files the stack reads
+      - path: ^test/
+        linters:
+          - gosec
+        text: "G204|G306|G703"
+
+# Format with gofmt, which keeps the blank lines between a test's blocks, and group own imports apart
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/hansehart/o3s
