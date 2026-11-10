@@ -67,12 +67,25 @@ func TestTheGatewayOpensThePortsTheHomesPolicyNames(t *testing.T) {
 	}
 	// Require an accepting rule for every port the policy names
 	for _, port := range []string{"22", "443"} {
-		rule := "--match-set allowed-p" + port + " dst --dport " + port + " -j ACCEPT"
 		// Flag a named port the chain leaves closed
-		if !strings.Contains(out, rule) {
-			t.Errorf("FORWARD lacks %q, rules:\n%s", rule, out)
+		if !acceptsPort(out, port) {
+			t.Errorf("FORWARD accepts nothing on port %s from its set, rules:\n%s", port, out)
 		}
 	}
+}
+
+// acceptsPort reports whether a chain holds a rule that accepts a port for the addresses in its set.
+func acceptsPort(rules, port string) bool {
+	// Look for one rule that names the port's set, the port and the accept
+	for rule := range strings.SplitSeq(rules, "\n") {
+		// Report the first rule that opens the port
+		if strings.Contains(rule, "--match-set allowed-p"+port+" dst") &&
+			strings.Contains(rule, "--dport "+port+" ") &&
+			strings.HasSuffix(rule, "-j ACCEPT") {
+			return true
+		}
+	}
+	return false
 }
 
 // The gateway follows the home's policy wherever the old policy still sits beside it.
