@@ -25,5 +25,5 @@
 
 ## Releases
 
-- **Versions** are left to the release bot, whose pull request raises the first number for breaking changes, the second for new features, and the third for fixes.
+- **Versions** are left to the release-please bot, whose pull request raises the first number for breaking changes, the second for new features, and the third for fixes.
 - **Releases** go out when that pull request merges, and publish the images to ghcr.io, tagged with their version.
