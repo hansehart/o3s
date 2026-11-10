@@ -31,7 +31,10 @@ linters:
     # Add the vet analyzers that find real bugs at little noise
     govet:
       enable:
+        - deepequalerrors
         - nilness
+        - reflectvaluecompare
+        - sortslice
         - unusedwrite
     misspell:
       locale: US
