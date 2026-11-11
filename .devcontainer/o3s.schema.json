@@ -26,7 +26,7 @@
       }
     },
     "hosts": {
-      "description": "Every host the cage may reach. Everything else stays closed.",
+      "description": "The allowlist, every host the cage may reach.",
       "type": "array",
       "items": {
         "type": "object",
