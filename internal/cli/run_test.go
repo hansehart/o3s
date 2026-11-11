@@ -21,6 +21,7 @@ func aHome(t *testing.T) {
 	}
 	t.Setenv("PATH", engine+string(os.PathListSeparator)+os.Getenv("PATH"))
 	home := t.TempDir()
+	t.Setenv("HOME", home)
 	c := config.Config{}
 	// Stop when the home stays unwritten
 	if err := c.Save(home); err != nil {

@@ -8,6 +8,7 @@ import (
 	"io"
 
 	"github.com/hansehart/o3s/internal/config"
+	"github.com/hansehart/o3s/internal/secrets"
 )
 
 // ErrUsage marks a command line with missing or malformed arguments.
@@ -31,7 +32,7 @@ func Run(ctx context.Context, args []string, s Streams) int {
 	}
 	fmt.Fprintf(s.Err, "Error: %v\n", err)
 	// Point a usage error at the help of the command it hit
-	if errors.Is(err, ErrUsage) || errors.Is(err, config.ErrInvalid) {
+	if errors.Is(err, ErrUsage) || errors.Is(err, config.ErrInvalid) || errors.Is(err, secrets.ErrInvalid) {
 		fmt.Fprintf(s.Err, "Run '%s --help' for usage.\n", cmd.CommandPath())
 		return 2
 	}

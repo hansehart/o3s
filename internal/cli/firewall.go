@@ -98,11 +98,21 @@ func newFirewallLs() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			_, store, err := loadSecrets()
+			// Hand back a secrets file that fails to load
+			if err != nil {
+				return err
+			}
 			w := tabwriter.NewWriter(cmd.OutOrStdout(), 0, 0, 2, ' ', 0)
 			fmt.Fprintln(w, "HOST\tPORTS\tSECRET\tBY")
 			// Write a row per host, in the order the file holds them
 			for _, h := range c.Hosts {
-				fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", h.Name, joinPorts(h.Ports), h.Secret, strings.Join(h.By, ", "))
+				secret := h.Secret
+				// Flag a secret that waits for its value
+				if _, ok := store.Value(secret); secret != "" && !ok {
+					secret += " ⚠"
+				}
+				fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", h.Name, joinPorts(h.Ports), secret, strings.Join(h.By, ", "))
 			}
 			return w.Flush()
 		},
