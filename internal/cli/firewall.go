@@ -121,22 +121,9 @@ func newFirewallLs() *cobra.Command {
 
 // change applies a change to the home, saves it, and restarts the stack so it takes effect.
 func change(cmd *cobra.Command, apply func(*config.Config) error) error {
-	dir, err := workingHome()
-	// Hand back a working folder that stays unknown
+	dir, err := edit(apply)
+	// Hand back a change that fails to apply or save
 	if err != nil {
-		return err
-	}
-	c, err := config.Load(dir)
-	// Hand back a home that fails to load
-	if err != nil {
-		return err
-	}
-	// Leave the file as it was when the change fails
-	if err := apply(&c); err != nil {
-		return err
-	}
-	// Hand back a home that fails to save
-	if err := c.Save(dir); err != nil {
 		return err
 	}
 	running, err := stack.Restart(cmd.Context(), dir)
@@ -151,6 +138,25 @@ func change(cmd *cobra.Command, apply func(*config.Config) error) error {
 	}
 	fmt.Fprintln(cmd.OutOrStdout(), "The stack picks the change up when it starts")
 	return nil
+}
+
+// edit applies a change to the home and saves it, and hands back the home's folder.
+func edit(apply func(*config.Config) error) (string, error) {
+	dir, err := workingHome()
+	// Hand back a working folder that stays unknown
+	if err != nil {
+		return "", err
+	}
+	c, err := config.Load(dir)
+	// Hand back a home that fails to load
+	if err != nil {
+		return "", err
+	}
+	// Leave the file as it was when the change fails
+	if err := apply(&c); err != nil {
+		return "", err
+	}
+	return dir, c.Save(dir)
 }
 
 // allowed confirms a host with its ports, and its secret where it carries one.

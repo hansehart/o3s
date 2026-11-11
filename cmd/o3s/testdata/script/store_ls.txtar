@@ -1,0 +1,16 @@
+# Every store shows how many features it offers, and a store out of reach shows a warning
+exec o3s store add $REGISTRY/features
+exec o3s store ls
+stdout '^STORE +FEATURES$'
+stdout '^127\.0\.0\.1:1/features +⚠$'
+stdout '/features +3$'
+
+# Listing leaves the stack untouched
+! exists docker.log
+
+-- o3s.json --
+{
+  "$schema": "./.devcontainer/o3s.schema.json",
+  "stores": [{"id": "127.0.0.1:1/features"}],
+  "hosts": []
+}
