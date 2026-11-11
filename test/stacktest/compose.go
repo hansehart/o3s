@@ -43,7 +43,8 @@ func compose(ctx context.Context, tb testing.TB, args ...string) (string, error)
 	return run(ctx, tb, "docker", append(files, args...)...)
 }
 
-// Up builds the services from this branch and waits until they are healthy.
+// Up builds the services from this branch and waits until they are healthy. It removes them once
+// the test ends.
 func Up(tb testing.TB, services ...string) error {
 	tb.Helper()
 	anEnv(tb)

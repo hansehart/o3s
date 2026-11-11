@@ -40,7 +40,7 @@ func load(t *testing.T, path string) secrets.Store {
 	return s
 }
 
-// Reading follows the proxy, the last set value winning.
+// Reading follows the proxy, the last set value winning. A value with a line break counts as none.
 func TestValueReadsLikeTheProxy(t *testing.T) {
 	path := aSecretsFile(t, header+"\nEXAMPLE_TOKEN = \"first\"\nEXAMPLE_TOKEN='second'\nEXAMPLE_TOKEN=\nBROKEN=a\rb\n")
 	s := load(t, path)
