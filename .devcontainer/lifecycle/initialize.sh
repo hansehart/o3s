@@ -33,8 +33,24 @@ profile_is_loaded() {
   return 1
 }
 
-# Start a missing policy empty, in the shape o3s writes, so every host stays closed until allowed
-[ -f "$CONFIG_FILE" ] || printf '{\n  "$schema": "./.o3s/o3s.schema.json",\n  "stores": [],\n  "hosts": []\n}\n' > "$CONFIG_FILE"
+# Start a missing policy with the official and the o3s feature stores and no host, in the shape o3s
+# writes, so every host stays closed until allowed
+if [ ! -f "$CONFIG_FILE" ]; then
+  cat > "$CONFIG_FILE" <<'POLICY'
+{
+  "$schema": "./.o3s/o3s.schema.json",
+  "stores": [
+    {
+      "id": "ghcr.io/devcontainers/features"
+    },
+    {
+      "id": "ghcr.io/hansehart/devcontainer-features"
+    }
+  ],
+  "hosts": []
+}
+POLICY
+fi
 
 # Seed the workspace from its template if missing
 [ -f .devcontainer/o3s.code-workspace ] || cp .devcontainer/templates/o3s.code-workspace .devcontainer/o3s.code-workspace
