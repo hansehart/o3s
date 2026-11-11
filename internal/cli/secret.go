@@ -173,9 +173,9 @@ func hostsNaming(name string) []string {
 	return hosts
 }
 
-// isTerminal reports whether input comes from a terminal rather than a pipe or a file.
-func isTerminal(in io.Reader) bool {
-	f, ok := in.(*os.File)
+// isTerminal reports whether a stream reaches a terminal rather than a pipe or a file.
+func isTerminal(stream any) bool {
+	f, ok := stream.(*os.File)
 	// Read anything but a file as a pipe
 	if !ok {
 		return false
