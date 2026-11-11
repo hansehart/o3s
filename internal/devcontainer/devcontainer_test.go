@@ -62,7 +62,7 @@ func edited(t *testing.T, text string, edit func(*devcontainer.Config)) string {
 // A feature joins the features in the config's own layout, its comments kept.
 func TestSetFeatureKeepsTheLayout(t *testing.T) {
 	got := edited(t, aConfig, func(c *devcontainer.Config) {
-		c.SetFeature("registry.example.com/features/tool", "registry.example.com/features/tool:1", map[string]string{"stateDir": "/home/ubuntu/state/registry.example.com/features/tool"})
+		c.SetFeature("registry.example.com/features/tool", "registry.example.com/features/tool:1", map[string]string{"stateDir": "/home/ubuntu/features/registry.example.com/features/tool"})
 		c.SetFeature("registry.example.com/features/other", "registry.example.com/features/other:2", nil)
 	})
 
@@ -73,7 +73,7 @@ func TestSetFeatureKeepsTheLayout(t *testing.T) {
     // Additional software layered onto the o3s image
     "features": {
         "registry.example.com/features/tool:1": {
-            "stateDir": "/home/ubuntu/state/registry.example.com/features/tool"
+            "stateDir": "/home/ubuntu/features/registry.example.com/features/tool"
         },
         "registry.example.com/features/other:2": {}
     },
@@ -151,7 +151,7 @@ func TestSetEnvAddsTheContainersEnv(t *testing.T) {
 	got := edited(t, aConfig, func(c *devcontainer.Config) {
 		c.SetEnv("EXAMPLE_MODE", "lax")
 		c.SetEnv("EXAMPLE_MODE", "strict")
-		c.SetEnv("EXAMPLE_HOME", "/home/ubuntu/state")
+		c.SetEnv("EXAMPLE_HOME", "/home/ubuntu/features")
 	})
 
 	want := `// The cage
@@ -164,7 +164,7 @@ func TestSetEnvAddsTheContainersEnv(t *testing.T) {
     "remoteUser": "ubuntu",
     "containerEnv": {
         "EXAMPLE_MODE": "strict",
-        "EXAMPLE_HOME": "/home/ubuntu/state"
+        "EXAMPLE_HOME": "/home/ubuntu/features"
     }
 }
 `
@@ -179,7 +179,7 @@ func TestRemoveEnvDropsTheVariable(t *testing.T) {
 	text := `{
     "containerEnv": {
         "EXAMPLE_MODE": "strict",
-        "EXAMPLE_HOME": "/home/ubuntu/state"
+        "EXAMPLE_HOME": "/home/ubuntu/features"
     }
 }
 `
@@ -187,7 +187,7 @@ func TestRemoveEnvDropsTheVariable(t *testing.T) {
 
 	want := `{
     "containerEnv": {
-        "EXAMPLE_HOME": "/home/ubuntu/state"
+        "EXAMPLE_HOME": "/home/ubuntu/features"
     }
 }
 `

@@ -36,7 +36,7 @@ services:
       # Host mount for dynamic changes
       - ../:/home/ubuntu/o3s:ro
       # Persistent state for installed features
-      - state:/home/ubuntu/state
+      - features:/home/ubuntu/features
       # Volume mount for project to work with across sessions
       - projects:/home/ubuntu/projects
       # Public proxy CA, folded into the trust store
@@ -190,5 +190,5 @@ networks:
     name: o3s-egress
 
 volumes:
-  state:
+  features:
   projects:

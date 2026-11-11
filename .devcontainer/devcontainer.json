@@ -21,13 +21,13 @@
     "features": {
         "ghcr.io/hansehart/devcontainer-features/claude-code:2": {
             "version": "latest",
-            "stateDir": "/home/ubuntu/state/ghcr.io/hansehart/devcontainer-features/claude-code",
+            "stateDir": "/home/ubuntu/features/ghcr.io/hansehart/devcontainer-features/claude-code",
             "disableNonessentialTraffic": true,
             "settingsJson": "{\\\"attribution\\\":{\\\"commit\\\":\\\"\\\",\\\"pr\\\":\\\"\\\"}}"
         },
         "ghcr.io/hansehart/devcontainer-features/codex:2": {
             "version": "latest",
-            "stateDir": "/home/ubuntu/state/ghcr.io/hansehart/devcontainer-features/codex"
+            "stateDir": "/home/ubuntu/features/ghcr.io/hansehart/devcontainer-features/codex"
         },
         "ghcr.io/hansehart/devcontainer-features/docker-in-docker:3": {
             "version": "latest",
@@ -46,25 +46,25 @@
         // },
         // "ghcr.io/hansehart/devcontainer-features/latex:3": {
         //     "version": "2025",
-        //     "stateDir": "/home/ubuntu/state/ghcr.io/hansehart/devcontainer-features/latex",
+        //     "stateDir": "/home/ubuntu/features/ghcr.io/hansehart/devcontainer-features/latex",
         //     "scheme": "scheme-basic"
         // },
         // "ghcr.io/hansehart/devcontainer-features/node:3": {
         //     "version": "lts",
-        //     "stateDir": "/home/ubuntu/state/ghcr.io/hansehart/devcontainer-features/node",
+        //     "stateDir": "/home/ubuntu/features/ghcr.io/hansehart/devcontainer-features/node",
         //     "ignoreScripts": true
         // },
         // "ghcr.io/hansehart/devcontainer-features/sops:2": {
         //     "version": "latest",
-        //     "stateDir": "/home/ubuntu/state/ghcr.io/hansehart/devcontainer-features/sops"
+        //     "stateDir": "/home/ubuntu/features/ghcr.io/hansehart/devcontainer-features/sops"
         // },
         // "ghcr.io/hansehart/devcontainer-features/tea:1": {
         //     "version": "latest",
-        //     "stateDir": "/home/ubuntu/state/ghcr.io/hansehart/devcontainer-features/tea"
+        //     "stateDir": "/home/ubuntu/features/ghcr.io/hansehart/devcontainer-features/tea"
         // },
         // "ghcr.io/hansehart/devcontainer-features/uv:2": {
         //     "version": "latest",
-        //     "stateDir": "/home/ubuntu/state/ghcr.io/hansehart/devcontainer-features/uv",
+        //     "stateDir": "/home/ubuntu/features/ghcr.io/hansehart/devcontainer-features/uv",
         //     "python": "3.13"
         }
     },

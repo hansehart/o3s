@@ -24,7 +24,7 @@ stderr 'unknown feature .*/features/tool'
 $REGISTRY/features/tool
   - example.com:443
   - EXAMPLE_MODE=strict
-  - EXAMPLE_HOME=/home/ubuntu/state/$REGISTRY/features/tool
+  - EXAMPLE_HOME=/home/ubuntu/features/$REGISTRY/features/tool
 Removed $REGISTRY/features/tool
 Restarted gateway
 -- want.jsonc --

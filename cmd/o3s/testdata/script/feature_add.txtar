@@ -44,7 +44,7 @@ stderr 'for usage'
 $REGISTRY/features/tool:2
   + example.com:443  EXAMPLE_TOKEN ⚠
   + EXAMPLE_MODE=strict
-  + EXAMPLE_HOME=/home/ubuntu/state/$REGISTRY/features/tool
+  + EXAMPLE_HOME=/home/ubuntu/features/$REGISTRY/features/tool
 Added $REGISTRY/features/tool
 ⚠ EXAMPLE_TOKEN waits for its value: echo "$TOKEN" | o3s secret add EXAMPLE_TOKEN
 Restarted gateway
@@ -54,13 +54,13 @@ Rebuild the cage to install it
     // Additional software layered onto the o3s image
     "features": {
         "$REGISTRY/features/tool:2": {
-            "stateDir": "/home/ubuntu/state/$REGISTRY/features/tool"
+            "stateDir": "/home/ubuntu/features/$REGISTRY/features/tool"
         }
     },
     // Variables every process in the cage runs with
     "containerEnv": {
         "EXAMPLE_MODE": "strict",
-        "EXAMPLE_HOME": "/home/ubuntu/state/$REGISTRY/features/tool"
+        "EXAMPLE_HOME": "/home/ubuntu/features/$REGISTRY/features/tool"
     }
 }
 -- want.log --

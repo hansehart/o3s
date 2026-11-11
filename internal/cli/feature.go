@@ -15,8 +15,8 @@ import (
 	"github.com/hansehart/o3s/internal/registry"
 )
 
-// stateRoot is where the cage keeps every feature's state dir.
-const stateRoot = "/home/ubuntu/state/"
+// featuresRoot is where the cage keeps every feature's state dir.
+const featuresRoot = "/home/ubuntu/features/"
 
 // errUnknownFeature marks a feature its store or the home lacks.
 var errUnknownFeature = errors.New("unknown feature")
@@ -238,7 +238,7 @@ func lookup(ctx context.Context, ref registry.Ref) (setup, error) {
 	if ref.Tag == "" {
 		ref.Tag = major(f.Version)
 	}
-	dir := stateRoot + ref.Package()
+	dir := featuresRoot + ref.Package()
 	s := setup{ref: ref, hosts: f.Hosts}
 	// Give the feature its state dir where it takes one
 	if slices.Contains(f.Options, "stateDir") {
