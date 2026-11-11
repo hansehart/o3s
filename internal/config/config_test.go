@@ -23,7 +23,7 @@ func anUnorderedConfig() config.Config {
 	}
 }
 
-// Saving writes the file in one stable shape: schema, stores and hosts in order, two-space indent.
+// Saving writes one stable shape, so a diff shows each change alone.
 func TestSaveWritesOneStableShape(t *testing.T) {
 	home := t.TempDir()
 	c := anUnorderedConfig()
@@ -63,8 +63,7 @@ func TestLoadReadsWhatSaveWrote(t *testing.T) {
 	}
 }
 
-// Loading a folder that holds no o3s home is turned away, so a command never starts a home by
-// accident.
+// Loading a folder without an o3s home is turned away.
 func TestLoadTurnsAwayAFolderWithoutAHome(t *testing.T) {
 	home := t.TempDir()
 

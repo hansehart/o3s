@@ -43,8 +43,8 @@ func compose(ctx context.Context, tb testing.TB, args ...string) (string, error)
 	return run(ctx, tb, "docker", append(files, args...)...)
 }
 
-// Up builds the services from this branch and waits until each reports healthy. It removes them
-// once the test ends.
+// Up builds the services from this branch and waits until they are healthy. It removes them once
+// the test ends.
 func Up(tb testing.TB, services ...string) error {
 	tb.Helper()
 	anEnv(tb)
@@ -58,8 +58,7 @@ func Up(tb testing.TB, services ...string) error {
 	return err
 }
 
-// anEnv hands compose the values the host generates before every start, as its start hook does. It
-// writes them when the checkout holds none, and removes what it wrote once the test ends.
+// anEnv writes the values the start hook generates when the checkout lacks them.
 func anEnv(tb testing.TB) {
 	tb.Helper()
 	env := filepath.Join(Repo(tb), ".devcontainer/.env")

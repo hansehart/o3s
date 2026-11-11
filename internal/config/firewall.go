@@ -12,9 +12,8 @@ type Diff struct {
 	Field, Old, New string
 }
 
-// Allow adds a host to the allowlist, or updates the one it names. An update replaces each field
-// the change gives and keeps the rest, and Allow reports every field it changed. The config stays
-// as it was when the change breaks a rule.
+// Allow adds or updates a host and reports each field it changed. A change that breaks a rule
+// leaves the config as it was.
 func (c *Config) Allow(ch Change) ([]Diff, error) {
 	// Turn away a change that breaks a rule of a single field
 	if err := validate(ch); err != nil {
@@ -43,8 +42,8 @@ func (c *Config) Allow(ch Change) ([]Diff, error) {
 	return diffs, nil
 }
 
-// Remove takes the user off a host's needed-by list, and the host off the allowlist once nothing
-// needs it. It hands back what still needs a host it keeps.
+// Remove takes the user off a host and drops the host once nothing needs it. It returns what still
+// needs a host it keeps.
 func (c *Config) Remove(name string) ([]string, error) {
 	i := slices.IndexFunc(c.Hosts, func(h Host) bool { return h.Name == name })
 	// Turn away a host the allowlist lacks

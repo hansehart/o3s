@@ -7,15 +7,13 @@ import (
 	"testing"
 )
 
-// AnEmptyPolicy hands the stack a policy that holds no host, and gives the checkout its own policy
-// back once the test ends.
+// AnEmptyPolicy hands the stack a policy without hosts for the length of the test.
 func AnEmptyPolicy(tb testing.TB) {
 	tb.Helper()
 	AHomePolicy(tb, `{"hosts": []}`)
 }
 
-// AHomePolicy hands the stack the home's policy, and gives the checkout its own policy back once
-// the test ends.
+// AHomePolicy hands the stack the home's policy for the length of the test.
 func AHomePolicy(tb testing.TB, policy string) {
 	tb.Helper()
 	path := filepath.Join(Repo(tb), "o3s.json")

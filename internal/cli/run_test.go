@@ -10,8 +10,7 @@ import (
 	"github.com/hansehart/o3s/internal/config"
 )
 
-// aHome hands a test an o3s home with an empty allowlist and a container engine that runs no stack,
-// and works inside it.
+// aHome works inside a new home with an empty allowlist and an engine that runs no stack.
 func aHome(t *testing.T) {
 	t.Helper()
 	engine := t.TempDir()

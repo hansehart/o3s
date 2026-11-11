@@ -8,8 +8,7 @@ import (
 	"testing"
 )
 
-// Parsed is what the proxy's addon reads from a policy and its secrets: every host it knows, the
-// ones it lets through on HTTPS, the secret value it injects per host, and where it injects it.
+// Parsed is what the proxy's addon reads from a policy and its secrets.
 type Parsed struct {
 	Keys     []string            `json:"keys"`
 	Allowed  []string            `json:"allowed"`
@@ -29,8 +28,7 @@ print(json.dumps({
     "sites": {k: sorted(v) for k, v in sorted(a._sites.items())},
 }))`
 
-// ProxyReads runs the proxy's addon from this branch in the proxy's own image, on a policy and its
-// secrets, and hands back what it read.
+// ProxyReads runs the proxy's addon from this branch in its own image and returns what it read.
 func ProxyReads(tb testing.TB, policy, secrets string) (Parsed, error) {
 	tb.Helper()
 	dir := tb.TempDir()

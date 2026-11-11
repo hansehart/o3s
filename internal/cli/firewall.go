@@ -119,8 +119,7 @@ func newFirewallLs() *cobra.Command {
 	}
 }
 
-// change loads the home, applies a change to it, saves it when the change succeeds, and restarts
-// the home's stack so the change takes effect.
+// change applies a change to the home, saves it, and restarts the stack so it takes effect.
 func change(cmd *cobra.Command, apply func(*config.Config) error) error {
 	dir, err := workingHome()
 	// Hand back a working folder that stays unknown
