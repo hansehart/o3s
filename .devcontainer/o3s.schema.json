@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "o3s",
+  "description": "The hosts the cage may reach and the stores it takes features from. o3s writes this file, so edit it through the o3s commands.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "description": "The schema this file follows.",
+      "type": "string"
+    },
+    "stores": {
+      "description": "Feature collections the menu offers features from.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id"],
+        "properties": {
+          "id": {
+            "description": "A feature collection, like ghcr.io/devcontainers/features.",
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "hosts": {
+      "description": "The allowlist, every host the cage may reach.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "ports", "by"],
+        "properties": {
+          "name": {
+            "description": "A domain, a wildcard like *.example.com that covers every subdomain, an IPv4 address or an IPv4 range.",
+            "type": "string",
+            "anyOf": [
+              { "pattern": "^(\\*\\.)?[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$" },
+              { "pattern": "^(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])(\\.(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])){3}(/(3[0-2]|[12]?[0-9]))?$" }
+            ]
+          },
+          "ports": {
+            "description": "The TCP ports the cage may reach on this host.",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "type": "integer", "minimum": 1, "maximum": 65535 }
+          },
+          "secret": {
+            "description": "The name of the secret the proxy injects for this host, whose value lives outside the cage.",
+            "type": "string",
+            "pattern": "^[A-Z_][A-Z0-9_]*$"
+          },
+          "inject": {
+            "description": "Where in a request the proxy places the secret.",
+            "type": "array",
+            "uniqueItems": true,
+            "items": { "enum": ["header", "query", "body"] }
+          },
+          "by": {
+            "description": "Who needs this host, the user or a feature by its id.",
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": { "type": "string", "minLength": 1 }
+          }
+        },
+        "dependentRequired": { "inject": ["secret"] }
+      }
+    }
+  }
+}

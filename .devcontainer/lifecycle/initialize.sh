@@ -38,7 +38,7 @@ profile_is_loaded() {
 if [ ! -f "$CONFIG_FILE" ]; then
   cat > "$CONFIG_FILE" <<'POLICY'
 {
-  "$schema": "./.o3s/o3s.schema.json",
+  "$schema": "./.devcontainer/o3s.schema.json",
   "stores": [
     {
       "id": "ghcr.io/devcontainers/features"

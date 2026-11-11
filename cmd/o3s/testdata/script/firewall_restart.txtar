@@ -12,7 +12,7 @@ cmpenv docker.log want.log
 
 -- stack-up --
 -- o3s.json --
-{"$schema": "./.o3s/o3s.schema.json", "stores": [], "hosts": []}
+{"$schema": "./.devcontainer/o3s.schema.json", "stores": [], "hosts": []}
 -- want.log --
 ps -q --filter label=com.docker.compose.project.working_dir=$WORK/.devcontainer --filter label=com.docker.compose.service=gateway
 ps -q --filter label=com.docker.compose.project.working_dir=$WORK/.devcontainer --filter label=com.docker.compose.service=proxy
