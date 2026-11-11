@@ -195,7 +195,7 @@ class InjectCredentials:
         if sig == self._sig:
             return
         self._sig = sig
-        # Read nothing from a policy that is missing or malformed, so every host stays closed.
+        # Treat a missing or malformed policy as an empty one, so every host stays closed.
         try:
             cfg = json.loads(Path(CONFIG_FILE).read_text())
             secrets = _parse_secrets(Path(SECRETS_FILE).read_text())
