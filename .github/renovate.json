@@ -32,12 +32,12 @@
       "groupName": "Hansehart Devcontainer Features"
     },
     {
-      "description": "Images tracking a rolling tag do not need a digest pin.",
+      "description": "Each release pins its own images through release-please, which alone moves them.",
       "matchPackageNames": [
         "ghcr.io/hansehart/o3s-base",
         "ghcr.io/hansehart/o3s-gateway"
       ],
-      "pinDigests": false
+      "enabled": false
     },
     {
       "description": "Label major updates so they get a deliberate review.",

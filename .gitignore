@@ -4,3 +4,4 @@
 .devcontainer/o3s.code-workspace
 *.crt
 *.key
+/dist/
