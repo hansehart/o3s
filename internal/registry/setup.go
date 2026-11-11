@@ -31,7 +31,7 @@ type Resolver struct {
 // Resolve finds a feature in its store and works out what it sets up, its tag the store's major
 // version unless the id names one.
 func (r *Resolver) Resolve(ctx context.Context, ref Ref) (Setup, error) {
-	features, err := r.collection(ctx, ref.Store)
+	features, err := r.Features(ctx, ref.Store)
 	// Name the store whose features stay out of reach
 	if err != nil {
 		return Setup{}, fmt.Errorf("read the features of %s: %w", ref.Store, err)
@@ -59,8 +59,8 @@ func (r *Resolver) Resolve(ctx context.Context, ref Ref) (Setup, error) {
 	return s, nil
 }
 
-// collection hands back a store's features, read from the registry the first time alone.
-func (r *Resolver) collection(ctx context.Context, store string) ([]Feature, error) {
+// Features hands back a store's features, read from the registry the first time alone.
+func (r *Resolver) Features(ctx context.Context, store string) ([]Feature, error) {
 	// Take the features read before
 	if features, ok := r.stores[store]; ok {
 		return features, nil

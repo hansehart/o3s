@@ -11,6 +11,7 @@ import (
 	"github.com/hansehart/o3s/internal/config"
 	"github.com/hansehart/o3s/internal/devcontainer"
 	"github.com/hansehart/o3s/internal/registry"
+	"github.com/hansehart/o3s/internal/secrets"
 )
 
 // newFeature builds the commands that add, remove and list the features the cage installs.
@@ -65,25 +66,10 @@ func newFeatureAdd() *cobra.Command {
 				return err
 			}
 			out := cmd.OutOrStdout()
-			fmt.Fprintln(out, s.Ref)
-			var waiting []string
-			// Show every host the feature opens, and the secret it carries
-			for _, h := range s.Hosts {
-				line := fmt.Sprintf("  + %s:%s", h.Name, joinPorts(registry.PortsOf(h)))
-				// Name the secret, and warn while it waits for its value
-				if h.Secret != "" {
-					line += "  " + h.Secret
-					// Warn about a secret without a value
-					if _, ok := store.Value(h.Secret); !ok {
-						line += " ⚠"
-						waiting = append(waiting, h.Secret)
-					}
-				}
+			lines, waiting := addLines(s, store)
+			// Show what the feature brings
+			for _, line := range lines {
 				fmt.Fprintln(out, line)
-			}
-			// Show every variable the feature sets
-			for _, e := range s.Env {
-				fmt.Fprintf(out, "  + %s=%s\n", e.Name, e.Value)
 			}
 			fmt.Fprintf(out, "Added %s\n", pkg)
 			// Name how to give each waiting secret its value
@@ -130,37 +116,24 @@ func newFeatureRm() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			ports := map[string][]int{}
-			// Remember every host's ports for the hosts the removal drops
-			for _, h := range c.Hosts {
-				ports[h.Name] = h.Ports
-			}
-			dropped := c.Release(pkg)
-			var removed []registry.Env
+			r := removal(c, dc, s)
+			c.Release(pkg)
 			// Drop every variable the feature set
-			for _, e := range s.Env {
-				// Keep the variables the config holds
-				if dc.RemoveEnv(e.Name) {
-					removed = append(removed, e)
-				}
+			for _, e := range r.env {
+				dc.RemoveEnv(e.Name)
 			}
 			// Hand back a home that fails to save
 			if err := saveHome(dir, c, dc); err != nil {
 				return err
 			}
 			out := cmd.OutOrStdout()
-			fmt.Fprintln(out, pkg)
-			// Show every host nothing needs any more
-			for _, name := range dropped {
-				fmt.Fprintf(out, "  - %s:%s\n", name, joinPorts(ports[name]))
-			}
-			// Show every variable the removal drops
-			for _, e := range removed {
-				fmt.Fprintf(out, "  - %s=%s\n", e.Name, e.Value)
+			// Show what leaves with the feature
+			for _, line := range rmLines(pkg, r) {
+				fmt.Fprintln(out, line)
 			}
 			fmt.Fprintf(out, "Removed %s\n", pkg)
 			// Restart the stack where the allowlist changed
-			if len(dropped) > 0 {
+			if len(r.hosts) > 0 {
 				return restart(cmd, dir)
 			}
 			return nil
@@ -202,6 +175,75 @@ func newFeatureLs() *cobra.Command {
 			return w.Flush()
 		},
 	}
+}
+
+// addLines shows what a feature brings, and lists the secrets it waits for.
+func addLines(s registry.Setup, store secrets.Store) ([]string, []string) {
+	lines := []string{s.Ref.String()}
+	var waiting []string
+	// Show every host the feature opens, and the secret it carries
+	for _, h := range s.Hosts {
+		line := fmt.Sprintf("  + %s:%s", h.Name, joinPorts(registry.PortsOf(h)))
+		// Name the secret, and warn while it waits for its value
+		if h.Secret != "" {
+			line += "  " + h.Secret
+			// Warn about a secret without a value
+			if _, ok := store.Value(h.Secret); !ok {
+				line += " ⚠"
+				waiting = append(waiting, h.Secret)
+			}
+		}
+		lines = append(lines, line)
+	}
+	// Show every variable the feature sets
+	for _, e := range s.Env {
+		lines = append(lines, fmt.Sprintf("  + %s=%s", e.Name, e.Value))
+	}
+	return lines, waiting
+}
+
+// removalOf is what removing a feature takes from a home: the hosts nothing else needs and the env it set.
+type removalOf struct {
+	hosts []string
+	env   []registry.Env
+}
+
+// removal works out what removing a feature takes from a home, leaving the home as it is.
+func removal(c config.Config, dc *devcontainer.Config, s registry.Setup) removalOf {
+	ports := map[string][]int{}
+	// Remember every host's ports for the hosts the removal drops
+	for _, h := range c.Hosts {
+		ports[h.Name] = h.Ports
+	}
+	after := c
+	after.Hosts = slices.Clone(c.Hosts)
+	var r removalOf
+	// Name every host nothing else needs, with its ports
+	for _, name := range after.Release(s.Ref.Package()) {
+		r.hosts = append(r.hosts, name+":"+joinPorts(ports[name]))
+	}
+	// Take every variable of the feature the config sets
+	for _, e := range s.Env {
+		// Take a variable the config holds
+		if _, ok := dc.Env(e.Name); ok {
+			r.env = append(r.env, e)
+		}
+	}
+	return r
+}
+
+// rmLines shows what leaves with a feature.
+func rmLines(pkg string, r removalOf) []string {
+	lines := []string{pkg}
+	// Show every host nothing needs any more
+	for _, h := range r.hosts {
+		lines = append(lines, "  - "+h)
+	}
+	// Show every variable the removal drops
+	for _, e := range r.env {
+		lines = append(lines, fmt.Sprintf("  - %s=%s", e.Name, e.Value))
+	}
+	return lines
 }
 
 // loadHome reads the settings and the dev container config of the home the command runs in.

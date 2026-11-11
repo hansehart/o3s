@@ -7,7 +7,12 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 
+	"github.com/hansehart/o3s/internal/config"
+	"github.com/hansehart/o3s/internal/devcontainer"
+	"github.com/hansehart/o3s/internal/home"
 	"github.com/hansehart/o3s/internal/menu"
+	"github.com/hansehart/o3s/internal/registry"
+	"github.com/hansehart/o3s/internal/registry/registrytest"
 )
 
 // The menu knows every secret the home names or stores, whether it holds a value, and the home's stores.
@@ -28,8 +33,9 @@ func TestMenuHomeReadsTheHome(t *testing.T) {
 		t.Fatalf("Setup: %v", err)
 	}
 
-	got := menuHome()
+	got := menuHome(t.Context())
 
+	got.Lookup = nil
 	want := menu.Home{
 		Dir:     dir,
 		Hosts:   got.Hosts,
@@ -52,10 +58,118 @@ func TestMenuHomeStartsOutsideAHome(t *testing.T) {
 	t.Chdir(dir)
 	t.Setenv("O3S_SECRETS_DIR", t.TempDir())
 
-	got := menuHome()
+	got := menuHome(t.Context())
 
+	got.Lookup = nil
 	// Require a home that names the folder alone
 	if diff := cmp.Diff(menu.Home{Dir: dir}, got); diff != "" {
 		t.Errorf("menuHome() (-want +got):\n%s", diff)
+	}
+}
+
+// aStoreWithTheTool raises a store that offers the tool and an other feature, and hands back the store.
+func aStoreWithTheTool(t *testing.T) string {
+	t.Helper()
+	r, err := registrytest.New()
+	// Stop when the registry fails to come up
+	if err != nil {
+		t.Fatalf("Setup: registrytest.New() = %v", err)
+	}
+	t.Cleanup(r.Close)
+	tool := `{"id": "tool", "version": "1.0.0", "customizations": {"o3s": {
+  "hosts": [{"name": "example.com", "ports": [443], "secret": "EXAMPLE_TOKEN"}],
+  "env": [{"name": "EXAMPLE_MODE", "value": "strict"}]
+}}}`
+	// Stop when the store fails to publish
+	if err := r.PushFeatures("features", tool, `{"id": "other"}`); err != nil {
+		t.Fatalf("Setup: PushFeatures() = %v", err)
+	}
+	return r.Host + "/features"
+}
+
+// aHomeIn makes a new home the test works in, with secrets of its own.
+func aHomeIn(t *testing.T) string {
+	t.Helper()
+	dir := t.TempDir()
+	t.Chdir(dir)
+	t.Setenv("O3S_SECRETS_DIR", t.TempDir())
+	// Stop when the home stays unwritten
+	if _, err := home.Init(dir); err != nil {
+		t.Fatalf("Setup: Init() = %v", err)
+	}
+	return dir
+}
+
+// The menu reads a store's features and shows what adding one brings, as feature add prints it.
+func TestMenuLookupShowsWhatAFeatureBrings(t *testing.T) {
+	store := aStoreWithTheTool(t)
+	aHomeIn(t)
+	l := menuLookup{ctx: t.Context(), r: &registry.Resolver{}}
+
+	ids, err := l.Features(store)
+	// Stop when the store fails to read
+	if err != nil {
+		t.Fatalf("Features() = %v", err)
+	}
+	pv, err := l.Add(store + "/tool")
+	// Stop when the preview fails
+	if err != nil {
+		t.Fatalf("Add() = %v", err)
+	}
+
+	// Require the store's ids in order
+	if diff := cmp.Diff([]string{"other", "tool"}, ids); diff != "" {
+		t.Errorf("Features() (-want +got):\n%s", diff)
+	}
+	want := menu.Preview{
+		Lines:   []string{store + "/tool:1", "  + example.com:443  EXAMPLE_TOKEN ⚠", "  + EXAMPLE_MODE=strict"},
+		Waiting: []string{"EXAMPLE_TOKEN"},
+	}
+	// Require the lines feature add prints
+	if diff := cmp.Diff(want, pv); diff != "" {
+		t.Errorf("Add() (-want +got):\n%s", diff)
+	}
+}
+
+// The menu shows what leaves with an installed feature, and lists the features the home holds.
+func TestMenuLookupShowsWhatLeavesWithAFeature(t *testing.T) {
+	store := aStoreWithTheTool(t)
+	dir := aHomeIn(t)
+	pkg := store + "/tool"
+	c, err := config.Load(dir)
+	// Stop when the settings fail to load
+	if err != nil {
+		t.Fatalf("Setup: %v", err)
+	}
+	// Stop when the tool's host stays out
+	if err := c.Need(pkg, config.Change{Name: "example.com", Secret: "EXAMPLE_TOKEN"}); err != nil {
+		t.Fatalf("Setup: %v", err)
+	}
+	dc, err := devcontainer.Load(dir)
+	// Stop when the config fails to load
+	if err != nil {
+		t.Fatalf("Setup: %v", err)
+	}
+	dc.SetFeature(pkg, pkg+":1", nil)
+	dc.SetEnv("EXAMPLE_MODE", "strict")
+	// Stop when the home fails to save
+	if err := saveHome(dir, c, dc); err != nil {
+		t.Fatalf("Setup: %v", err)
+	}
+	l := menuLookup{ctx: t.Context(), r: &registry.Resolver{}}
+
+	pv, err := l.Remove(pkg)
+
+	// Stop when the preview fails
+	if err != nil {
+		t.Fatalf("Remove() = %v", err)
+	}
+	// Require the lines feature rm prints
+	if diff := cmp.Diff(menu.Preview{Lines: []string{pkg, "  - example.com:443", "  - EXAMPLE_MODE=strict"}}, pv); diff != "" {
+		t.Errorf("Remove() (-want +got):\n%s", diff)
+	}
+	// Require the installed feature on offer
+	if diff := cmp.Diff([]string{pkg}, menuHome(t.Context()).Features); diff != "" {
+		t.Errorf("menuHome().Features (-want +got):\n%s", diff)
 	}
 }

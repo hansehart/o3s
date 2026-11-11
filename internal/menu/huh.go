@@ -27,6 +27,10 @@ func (h Huh) Ask(q Question) ([]string, error) {
 	if len(q.Default) > 0 {
 		single, multi = q.Default[0], q.Default
 	}
+	// Show the change the question is about
+	for _, line := range q.Preview {
+		fmt.Fprintln(h.Out, line)
+	}
 	interrupted := false
 	keys := huh.NewDefaultKeyMap()
 	keys.Quit = key.NewBinding(key.WithKeys("esc", "ctrl+c"))
