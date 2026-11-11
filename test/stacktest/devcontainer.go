@@ -16,8 +16,7 @@ type Raised struct {
 	ContainerID string `json:"containerId"`
 }
 
-// DevcontainerUp raises the stack built from this branch the way the editor raises the daily one,
-// and hands back what the CLI reports about it.
+// DevcontainerUp raises the stack built from this branch the way the editor does.
 func DevcontainerUp(tb testing.TB) (Raised, error) {
 	tb.Helper()
 	out, err := run(tb.Context(), tb, "devcontainer", "up", "--workspace-folder", Repo(tb), "--config", devConfig(tb))
@@ -45,8 +44,7 @@ const composeLine = `"dockerComposeFile": "compose.yaml"`
 // devConfigs holds, per test, the dev config written for it.
 var devConfigs sync.Map
 
-// devConfig writes the daily config with the dev overlay layered over its stack, once per test, so
-// every image comes from the checkout while features and hooks stay as the editor runs them.
+// devConfig writes the daily config with the dev overlay, once per test.
 func devConfig(tb testing.TB) string {
 	tb.Helper()
 	// Hand back the config this test already holds, so its stack keeps one identity

@@ -40,8 +40,7 @@ func load(t *testing.T, path string) secrets.Store {
 	return s
 }
 
-// Reading follows the proxy: comments and blanks skipped, quotes and whitespace trimmed, the last
-// value that holds anything wins, and a value with a line break counts as none.
+// Reading follows the proxy, the last set value winning.
 func TestValueReadsLikeTheProxy(t *testing.T) {
 	path := aSecretsFile(t, header+"\nEXAMPLE_TOKEN = \"first\"\nEXAMPLE_TOKEN='second'\nEXAMPLE_TOKEN=\nBROKEN=a\rb\n")
 	s := load(t, path)

@@ -9,8 +9,7 @@ import (
 	"strings"
 )
 
-// Restart restarts the home's gateway and then its proxy, which shares the gateway's network, so
-// both read the home's settings afresh. It reports whether the home's stack runs.
+// Restart restarts the home's gateway, then its proxy, and reports whether the stack runs.
 func Restart(ctx context.Context, home string) (bool, error) {
 	project := "label=com.docker.compose.project.working_dir=" + filepath.Join(home, ".devcontainer")
 	var ids []string

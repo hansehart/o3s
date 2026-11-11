@@ -7,8 +7,7 @@ import (
 	"testing"
 )
 
-// The stack and gateway built from this branch, the profile the cage runs under, where the kernel
-// lays out what it holds, and where the host keeps the profile it loads at boot.
+// The stack built from this branch and where the cage's profile lives.
 const (
 	devProject       = "o3s-dev"
 	devGateway       = "o3s-gateway:dev"
@@ -17,9 +16,7 @@ const (
 	installedProfile = "/etc/apparmor.d/" + profileName
 )
 
-// AHostThatLostTheProfile leaves the host holding the cage's installed profile alone, as a restart
-// that empties the kernel does. It raises the stack first, so the profile the kernel then loses is
-// one the stack loaded.
+// AHostThatLostTheProfile leaves the cage's profile installed but unloaded, as after a reboot.
 func AHostThatLostTheProfile(tb testing.TB) {
 	tb.Helper()
 	raised, err := DevcontainerUp(tb)

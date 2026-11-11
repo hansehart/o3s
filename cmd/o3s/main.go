@@ -1,5 +1,4 @@
-// Command o3s sets up the cage an o3s home runs: the hosts it may reach, the secrets the proxy
-// injects, and the features it holds.
+// Command o3s sets up the hosts, secrets and features of an o3s home.
 package main
 
 import (

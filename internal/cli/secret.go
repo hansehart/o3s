@@ -96,8 +96,7 @@ func newSecretRm() *cobra.Command {
 	}
 }
 
-// newSecretLs builds the command that lists every secret, whether it holds a value, and the hosts
-// that carry it, never the value itself.
+// newSecretLs builds the command that lists every secret, whether it is set, and its hosts.
 func newSecretLs() *cobra.Command {
 	return &cobra.Command{
 		Use:   "ls",

@@ -13,7 +13,7 @@ import (
 	"github.com/hansehart/o3s/test/stacktest"
 )
 
-// The proxy reads the home's policy: every host it lets through, and the secret it injects where.
+// The proxy reads every host of the home's policy and the secret it injects for each.
 func TestTheProxyReadsTheHomesPolicy(t *testing.T) {
 	policy := `{
   "$schema": "./.o3s/o3s.schema.json",

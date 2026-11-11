@@ -20,8 +20,7 @@ type Streams struct {
 	Out, Err io.Writer
 }
 
-// Run executes a command line and hands back its exit status: 0 on success, 2 on a usage error,
-// and 1 on any other failure.
+// Run executes a command line and returns 0, 2 for a usage error, or 1 for any other failure.
 func Run(ctx context.Context, args []string, s Streams) int {
 	root := newRoot(s)
 	root.SetArgs(append([]string{}, args...))

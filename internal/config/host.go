@@ -58,8 +58,7 @@ func IsSecretName(name string) bool {
 	return envName.MatchString(name)
 }
 
-// validName reports whether a host reads as a domain, a wildcard domain, an IPv4 address or an
-// IPv4 CIDR.
+// validName reports whether a host is a domain, a wildcard domain, an IPv4 address or an IPv4 CIDR.
 func validName(name string) bool {
 	// Accept an IPv4 range
 	if prefix, err := netip.ParsePrefix(name); err == nil {

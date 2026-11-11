@@ -9,14 +9,13 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
-// order puts the hosts in apex order and the stores in id order, so a diff of the file shows each
-// change alone.
+// order sorts hosts by apex and stores by id, so a diff shows each change alone.
 func (c *Config) order() {
 	slices.SortStableFunc(c.Hosts, func(a, b Host) int { return compareHosts(a.Name, b.Name) })
 	slices.SortStableFunc(c.Stores, func(a, b Store) int { return strings.Compare(a.ID, b.ID) })
 }
 
-// hostKey is where a host sorts: domains before addresses, then by apex, the apex itself first.
+// hostKey places a host in the apex order, with domains before addresses.
 type hostKey struct {
 	address bool
 	apex    string

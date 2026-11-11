@@ -1,5 +1,4 @@
-// Package secrets reads and writes the real values of the secrets the proxy injects, in the file it
-// reads them from, keeping every line the user wrote.
+// Package secrets reads and writes the values the proxy injects, keeping every other line.
 package secrets
 
 import (
@@ -62,8 +61,7 @@ func Load(path string) (Store, error) {
 	return Store{lines: strings.Split(text, "\n")}, nil
 }
 
-// Value hands back a secret's value the way the proxy reads it: the last line of the name that holds
-// a value wins.
+// Value returns a secret's value the way the proxy reads it, the last set line winning.
 func (s Store) Value(name string) (string, bool) {
 	var value string
 	// Read every line, keeping the last value of the name
@@ -91,9 +89,7 @@ func (s Store) Names() []string {
 	return names
 }
 
-// Set stores a secret's value on the first line of its name, drops later lines of it so none
-// shadows the value, and appends the name where the file lacks it. It reports whether the name held
-// a value before.
+// Set stores a value on the name's first line, drops its later lines, and reports a replaced value.
 func (s *Store) Set(name, value string) (bool, error) {
 	value = strings.TrimSpace(value)
 	// Turn away a name the proxy reads under no variable
@@ -149,8 +145,7 @@ func (s Store) String() string {
 	return strings.Join(s.lines, "\n") + "\n"
 }
 
-// Save writes the file for its owner alone, in a folder for its owner alone, and replaces it in a
-// single step so the proxy always reads it whole.
+// Save writes the file for its owner alone and replaces it in a single step.
 func (s Store) Save(path string) error {
 	dir := filepath.Dir(path)
 	// Hand back a folder that stays uncreated
@@ -175,8 +170,7 @@ func (s Store) Save(path string) error {
 	return os.Rename(tmp.Name(), path)
 }
 
-// parse reads one line the way the proxy does: blanks and comments hold no entry, and a value loses
-// its surrounding whitespace and quotes.
+// parse reads one line the way the proxy does.
 func parse(line string) (string, string, bool) {
 	line = strings.TrimSpace(line)
 	// Skip a line that holds no entry

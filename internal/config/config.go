@@ -1,5 +1,4 @@
-// Package config reads and writes the o3s home's settings: the hosts the cage may reach and the
-// stores it takes features from.
+// Package config reads and writes the hosts and stores of an o3s home.
 package config
 
 import (
@@ -45,7 +44,7 @@ type Store struct {
 	ID string `json:"id"`
 }
 
-// Host is one entry of the allowlist: where the cage may connect, and what the proxy injects there.
+// Host is one allowlist entry, where the cage may connect and what the proxy injects there.
 type Host struct {
 	Name   string   `json:"name"`
 	Ports  []int    `json:"ports"`
@@ -54,8 +53,7 @@ type Host struct {
 	By     []string `json:"by"`
 }
 
-// Change names a host and the fields to set on it. A field left empty keeps its current value, or
-// takes its default on a new host.
+// Change names a host and the fields to set, an empty field keeping its value or default.
 type Change struct {
 	Name   string
 	Ports  []int
@@ -84,8 +82,7 @@ func Load(home string) (Config, error) {
 	return c, nil
 }
 
-// Save writes the settings into the o3s home in a folder, in one stable shape, and replaces the
-// file in a single step so a reader always finds it whole.
+// Save writes the settings in one stable shape and replaces the file in a single step.
 func (c *Config) Save(home string) error {
 	c.Schema = schema
 	c.order()
