@@ -13,6 +13,6 @@ cmp stdout want.txt
   ]
 }
 -- want.txt --
-HOST             PORTS   SECRET         BY
-example.com      22,443                 user
-api.example.com  443     EXAMPLE_TOKEN  registry.example.com/features/tool
+HOST             PORTS   SECRET           BY
+example.com      22,443                   user
+api.example.com  443     EXAMPLE_TOKEN ⚠  registry.example.com/features/tool
