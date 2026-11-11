@@ -1,0 +1,28 @@
+# A listed store leaves the list
+exec o3s store rm registry.example.com/features
+stdout '^Removed registry.example.com/features$'
+cmp o3s.json want.json
+
+# A store the list lacks is turned away
+! exec o3s store rm registry.example.com/features
+stderr 'unknown store registry.example.com/features'
+
+# A store change leaves the stack untouched
+! exists docker.log
+
+-- o3s.json --
+{
+  "$schema": "./.devcontainer/o3s.schema.json",
+  "stores": [{"id": "registry.example.com/features"}, {"id": "registry.example.org/features"}],
+  "hosts": []
+}
+-- want.json --
+{
+  "$schema": "./.devcontainer/o3s.schema.json",
+  "stores": [
+    {
+      "id": "registry.example.org/features"
+    }
+  ],
+  "hosts": []
+}

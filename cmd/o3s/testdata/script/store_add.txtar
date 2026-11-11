@@ -1,0 +1,35 @@
+# A store joins the list with the features it offers
+exec o3s store add $REGISTRY/features
+cmpenv stdout added.txt
+grep ${REGISTRY@R}/features o3s.json
+cp o3s.json want.json
+
+# Adding the store again keeps the list as it was
+exec o3s store add $REGISTRY/features
+cmpenv stdout added.txt
+cmp o3s.json want.json
+
+# A store without a collection leaves the list as it was
+! exec o3s store add $REGISTRY/absent
+stderr 'read the features of .*/absent'
+cmp o3s.json want.json
+
+# A store id that names no repository is a usage error
+! exec o3s store add Registry.example.com/Features
+stderr 'invalid store'
+stderr 'for usage'
+cmp o3s.json want.json
+
+# A store change leaves the stack untouched
+! exists docker.log
+
+-- o3s.json --
+{
+  "$schema": "./.devcontainer/o3s.schema.json",
+  "stores": [],
+  "hosts": []
+}
+-- added.txt --
+$REGISTRY/features
+  + go, node, python
+Added $REGISTRY/features

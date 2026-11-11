@@ -27,6 +27,8 @@ var (
 	ErrInvalid = errors.New("invalid")
 	// ErrUnknownHost marks a host the allowlist lacks.
 	ErrUnknownHost = errors.New("unknown host")
+	// ErrUnknownStore marks a store the list lacks.
+	ErrUnknownStore = errors.New("unknown store")
 	// ErrOwnedByFeatures marks a host that features alone brought, so removing them removes it.
 	ErrOwnedByFeatures = errors.New("needed by features alone")
 )
