@@ -48,7 +48,7 @@ func (c *Config) Save(home string) error {
 
 // Features lists the features the config names, in its order.
 func (c *Config) Features() []string {
-	o := c.object("features")
+	o := c.find("features")
 	var keys []string
 	// Take every feature's name
 	for _, m := range o.Members {
@@ -69,6 +69,32 @@ func (c *Config) SetFeature(pkg, key string, options map[string]string) {
 // RemoveFeature drops a feature whatever its tag and reports whether the config named it.
 func (c *Config) RemoveFeature(pkg string) bool {
 	return c.remove("features", func(m hujson.ObjectMember) bool { return samePackage(name(m), pkg) })
+}
+
+// RetagFeature names a feature under another tag, keeps its options, and reports whether the config named it.
+func (c *Config) RetagFeature(pkg, key string) bool {
+	o := c.find("features")
+	// Find the feature whatever its tag
+	for i, m := range o.Members {
+		// Give it the new name and leave its options as they are
+		if samePackage(name(m), pkg) {
+			o.Members[i].Name.Value = hujson.String(key)
+			return true
+		}
+	}
+	return false
+}
+
+// Env hands back the value the config gives a variable, and whether it sets one.
+func (c *Config) Env(key string) (string, bool) {
+	// Find the variable among the container's env
+	for _, m := range c.find("containerEnv").Members {
+		// Take the value of a variable set as a string
+		if l, ok := m.Value.Value.(hujson.Literal); ok && name(m) == key && l.Kind() == '"' {
+			return l.String(), true
+		}
+	}
+	return "", false
 }
 
 // SetEnv sets a variable every process in the cage runs with.
@@ -101,7 +127,7 @@ func (c *Config) set(object string, match func(hujson.ObjectMember) bool, key st
 
 // remove drops the first member that matches and reports whether one did.
 func (c *Config) remove(object string, match func(hujson.ObjectMember) bool) bool {
-	o := c.object(object)
+	o := c.find(object)
 	// Find the member that matches
 	for i, m := range o.Members {
 		// Drop it, and close the object where it held nothing else
@@ -120,7 +146,7 @@ func (c *Config) remove(object string, match func(hujson.ObjectMember) bool) boo
 // object finds a top-level object of the config and adds it where the config lacks it.
 func (c *Config) object(key string) *hujson.Object {
 	root := c.v.Value.(*hujson.Object)
-	// Find the object the config already holds
+	// Take the object the config already holds
 	for _, m := range root.Members {
 		// Take the object of that name
 		if o, ok := m.Value.Value.(*hujson.Object); ok && name(m) == key {
@@ -130,6 +156,18 @@ func (c *Config) object(key string) *hujson.Object {
 	o := &hujson.Object{}
 	appendMember(root, key, hujson.Value{Value: o}, c.unit(), "")
 	return o
+}
+
+// find hands back a top-level object of the config, and an empty one where the config lacks it.
+func (c *Config) find(key string) *hujson.Object {
+	// Look at every top-level member
+	for _, m := range c.v.Value.(*hujson.Object).Members {
+		// Take the object of that name
+		if o, ok := m.Value.Value.(*hujson.Object); ok && name(m) == key {
+			return o
+		}
+	}
+	return &hujson.Object{}
 }
 
 // unit is the indent the config's top-level members carry, four spaces where it shows none.
