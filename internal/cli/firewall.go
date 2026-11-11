@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/hansehart/o3s/internal/config"
+	"github.com/hansehart/o3s/internal/stack"
 )
 
 // newFirewall builds the commands that allow, remove and list hosts.
@@ -27,7 +28,7 @@ func newFirewallAdd() *cobra.Command {
 		Args:  usage(cobra.ExactArgs(1)),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ch.Name = args[0]
-			return change(func(c *config.Config) error {
+			return change(cmd, func(c *config.Config) error {
 				diffs, err := c.Allow(ch)
 				// Hand back a change the allowlist turns away
 				if err != nil {
@@ -62,7 +63,7 @@ func newFirewallRm() *cobra.Command {
 		Args:  usage(cobra.ExactArgs(1)),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			name := args[0]
-			return change(func(c *config.Config) error {
+			return change(cmd, func(c *config.Config) error {
 				kept, err := c.Remove(name)
 				// Hand back a removal the allowlist turns away
 				if err != nil {
@@ -108,8 +109,9 @@ func newFirewallLs() *cobra.Command {
 	}
 }
 
-// change loads the home, applies a change to it, and saves it when the change succeeds.
-func change(apply func(*config.Config) error) error {
+// change loads the home, applies a change to it, saves it when the change succeeds, and restarts
+// the home's stack so the change takes effect.
+func change(cmd *cobra.Command, apply func(*config.Config) error) error {
 	dir, err := home()
 	// Hand back a working folder that stays unknown
 	if err != nil {
@@ -124,7 +126,22 @@ func change(apply func(*config.Config) error) error {
 	if err := apply(&c); err != nil {
 		return err
 	}
-	return c.Save(dir)
+	// Hand back a home that fails to save
+	if err := c.Save(dir); err != nil {
+		return err
+	}
+	running, err := stack.Restart(cmd.Context(), dir)
+	// Hand back a stack that fails to restart, its settings already saved
+	if err != nil {
+		return fmt.Errorf("saved %s, restart the stack to apply it: %w", config.File, err)
+	}
+	// Name how the change takes effect
+	if running {
+		fmt.Fprintln(cmd.OutOrStdout(), "Restarted gateway")
+		return nil
+	}
+	fmt.Fprintln(cmd.OutOrStdout(), "The stack picks the change up when it starts")
+	return nil
 }
 
 // allowed confirms a host with its ports, and its secret where it carries one.

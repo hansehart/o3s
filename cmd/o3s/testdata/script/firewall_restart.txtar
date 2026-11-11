@@ -1,0 +1,20 @@
+# A change restarts the gateway first and the proxy second, which shares its network
+exec o3s firewall add example.com
+stdout '^Allowed example.com:443$'
+stdout '^Restarted gateway$'
+cmpenv docker.log want.log
+
+# Removing a host restarts the stack as well
+rm docker.log
+exec o3s firewall rm example.com
+stdout '^Restarted gateway$'
+cmpenv docker.log want.log
+
+-- stack-up --
+-- o3s.json --
+{"$schema": "./.o3s/o3s.schema.json", "stores": [], "hosts": []}
+-- want.log --
+ps -q --filter label=com.docker.compose.project.working_dir=$WORK/.devcontainer --filter label=com.docker.compose.service=gateway
+ps -q --filter label=com.docker.compose.project.working_dir=$WORK/.devcontainer --filter label=com.docker.compose.service=proxy
+restart gateway-id
+restart proxy-id

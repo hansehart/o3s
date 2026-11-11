@@ -52,7 +52,6 @@ func TestTheGatewayRejectsEveryNewConnectionOnAnEmptyPolicy(t *testing.T) {
 
 // The gateway opens every port the home's policy names for a host.
 func TestTheGatewayOpensThePortsTheHomesPolicyNames(t *testing.T) {
-	stacktest.AnEmptyPolicy(t)
 	stacktest.AHomePolicy(t, `{"hosts": [{"name": "example.com", "ports": [443, 80], "by": ["user"]}]}`)
 	// Stop when the gateway fails to come up
 	if err := stacktest.Up(t, "gateway"); err != nil {
@@ -86,25 +85,4 @@ func acceptsPort(rules, port string) bool {
 		}
 	}
 	return false
-}
-
-// The gateway follows the home's policy wherever the old policy still sits beside it.
-func TestTheGatewayPrefersTheHomesPolicyOverTheOldOne(t *testing.T) {
-	stacktest.AnOldPolicy(t, "[\"example.com\"]\nports = [8443]\n")
-	stacktest.AHomePolicy(t, `{"hosts": []}`)
-	// Stop when the gateway fails to come up
-	if err := stacktest.Up(t, "gateway"); err != nil {
-		t.Fatalf("Setup: Up(gateway): %v", err)
-	}
-
-	out, err := stacktest.Exec(t, "gateway", "iptables", "-S", "FORWARD")
-
-	// Stop when reading the rules fails
-	if err != nil {
-		t.Fatalf("Exec(gateway, iptables -S FORWARD) = %v", err)
-	}
-	// Require the old policy's port to stay closed
-	if strings.Contains(out, "--dport 8443") {
-		t.Errorf("FORWARD opens 8443 from the old policy, rules:\n%s", out)
-	}
 }

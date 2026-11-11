@@ -10,9 +10,16 @@ import (
 	"github.com/hansehart/o3s/internal/config"
 )
 
-// aHome hands a test an o3s home with an empty allowlist, and works inside it.
+// aHome hands a test an o3s home with an empty allowlist and a container engine that runs no stack,
+// and works inside it.
 func aHome(t *testing.T) {
 	t.Helper()
+	engine := t.TempDir()
+	// Stop when the engine stays unwritten
+	if err := os.WriteFile(filepath.Join(engine, "docker"), []byte("#!/bin/sh\nexit 0\n"), 0o755); err != nil { //nolint:gosec // the test runs the fake engine
+		t.Fatalf("Setup: %v", err)
+	}
+	t.Setenv("PATH", engine+string(os.PathListSeparator)+os.Getenv("PATH"))
 	home := t.TempDir()
 	c := config.Config{}
 	// Stop when the home stays unwritten

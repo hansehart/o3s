@@ -16,7 +16,7 @@ set -euo pipefail
 log() { echo "[o3s] INFO: $*"; }
 
 ENV_FILE=.devcontainer/.env
-CONFIG_FILE=.devcontainer/config.toml
+CONFIG_FILE=o3s.json
 PROFILE_FILE=.devcontainer/apparmor.conf
 PROFILE_NAME=o3s-cage
 INSTALLED_PROFILE=/etc/apparmor.d/$PROFILE_NAME
@@ -33,8 +33,26 @@ profile_is_loaded() {
   return 1
 }
 
-# Seed each editable config file from its template if missing
-[ -f "$CONFIG_FILE" ]                   || cp .devcontainer/templates/config.toml "$CONFIG_FILE"
+# Start a missing policy with the official and the o3s feature stores and no host, in the shape o3s
+# writes, so every host stays closed until allowed
+if [ ! -f "$CONFIG_FILE" ]; then
+  cat > "$CONFIG_FILE" <<'POLICY'
+{
+  "$schema": "./.o3s/o3s.schema.json",
+  "stores": [
+    {
+      "id": "ghcr.io/devcontainers/features"
+    },
+    {
+      "id": "ghcr.io/hansehart/devcontainer-features"
+    }
+  ],
+  "hosts": []
+}
+POLICY
+fi
+
+# Seed the workspace from its template if missing
 [ -f .devcontainer/o3s.code-workspace ] || cp .devcontainer/templates/o3s.code-workspace .devcontainer/o3s.code-workspace
 
 # Hold this host's secrets in a directory only this account reads
@@ -64,7 +82,7 @@ fi
   || install -m 600 .devcontainer/templates/secrets.env "$SECRETS_DIR/secrets.env"
 
 # Collect the secret name each credential-inject host declares
-SECRETS="$(grep -oE '^[[:space:]]*secret[[:space:]]*=[[:space:]]*"[^"]+"' "$CONFIG_FILE" \
+SECRETS="$(grep -oE '"secret"[[:space:]]*:[[:space:]]*"[^"]+"' "$CONFIG_FILE" \
            | sed -E 's/.*"([^"]+)"/\1/' || true)"
 
 # Carry the marker across runs so a rebuild keeps the value the cage already holds

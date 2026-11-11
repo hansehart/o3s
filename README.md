@@ -23,19 +23,24 @@ We do software development for a living, and o3s is our answer to keeping pace: 
 
 ## Security
 
-You write the whole policy in one file, `config.toml`, one table per host:
+You keep the whole policy in one file, `o3s.json`, and change it with `o3s firewall`:
 
-```toml
-["github.com"]
-ports = [22, 443]
-
-["api.anthropic.com"]
-ports = [443]
-
-["api.openai.com"]
-ports  = [443]
-secret = "OPENAI_API_KEY" # injected for this host only, never inside the cage
+```sh
+o3s firewall add github.com --port 22 --port 443
+o3s firewall add api.openai.com --secret OPENAI_API_KEY   # injected for this host only, never inside the cage
+o3s firewall ls
 ```
+
+```json
+{
+  "hosts": [
+    { "name": "github.com", "ports": [22, 443], "by": ["user"] },
+    { "name": "api.openai.com", "ports": [443], "secret": "OPENAI_API_KEY", "inject": ["header"], "by": ["user"] }
+  ]
+}
+```
+
+A host is a domain, a wildcard like `*.docker.io` that covers every subdomain, an IPv4 address or an IPv4 range. Every host names its ports, and a host with a secret carries it in its requests' headers, or in the query or body it names. Each change restarts the gateway and the proxy, so the cage reaches the new policy at once.
 
 ## Productivity
 

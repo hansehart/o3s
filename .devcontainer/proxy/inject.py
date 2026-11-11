@@ -33,17 +33,17 @@ Inputs:
 """
 
 import base64
+import json
 import logging
 import os
 import re
 from pathlib import Path
 from urllib.parse import quote
 
-import tomllib
 from mitmproxy import http, tls
 from mitmproxy.proxy import server_hooks
 
-CONFIG_FILE = os.environ.get("O3S_CONFIG_FILE", "/etc/o3s/config.toml")
+CONFIG_FILE = os.environ.get("O3S_CONFIG_FILE", "/etc/o3s/o3s.json")
 SECRETS_FILE = os.environ.get("O3S_SECRETS_FILE", "/config/secrets.env")
 
 # Where in a request a host may carry its credential, and what it carries there unless it says so.
@@ -195,19 +195,23 @@ class InjectCredentials:
         if sig == self._sig:
             return
         self._sig = sig
+        # Treat a missing or malformed policy as an empty one, so every host stays closed.
         try:
-            cfg = tomllib.loads(Path(CONFIG_FILE).read_text())
+            cfg = json.loads(Path(CONFIG_FILE).read_text())
             secrets = _parse_secrets(Path(SECRETS_FILE).read_text())
-        except OSError:
+        except (OSError, ValueError):
             cfg, secrets = {}, {}
+        listed = cfg.get("hosts") if isinstance(cfg, dict) else None
         hosts = {}
         sites = {}
         keys = set()
         allowed = set()
-        # Index every table by its match key, keeping the secret and sites it declares alongside.
-        for host, spec in cfg.items():
-            if not isinstance(spec, dict):
+        # Index every host by its match key, keeping the secret and sites it declares alongside.
+        for spec in listed if isinstance(listed, list) else ():
+            # Skip an entry that is no host
+            if not isinstance(spec, dict) or not isinstance(spec.get("name"), str):
                 continue
+            host = spec["name"]
             key = _match_key(host)
             if key is None:
                 continue

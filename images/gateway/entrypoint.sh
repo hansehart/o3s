@@ -6,17 +6,15 @@
 # DESCRIPTION
 #        The gateway's PID 1: fails closed, locates the cage and egress interfaces, turns the
 #        allowlist into ipsets and iptables rules, diverts cage HTTPS to the proxy, then execs
-#        dnsmasq to resolve allowed domains and populate the sets. It reads the home's policy
-#        where the stack mounts it, and the old policy otherwise.
+#        dnsmasq to resolve allowed domains and populate the sets.
 #
 # SEE ALSO
-#        config.toml, dnsmasq.conf.template, healthcheck.sh
+#        dnsmasq.conf.template, healthcheck.sh, o3s.json
 
 set -euo pipefail
 
-# Fixed image contract for the policy mounts, the upstream resolver and the generated config.
-HOME_POLICY=/config/o3s.json
-OLD_POLICY=/config/config.toml
+# Fixed image contract for the policy mount, the upstream resolver and the generated config.
+CONFIG_FILE=/config/o3s.json
 UPSTREAM_DNS=127.0.0.11
 CONF=/etc/dnsmasq.conf
 
@@ -82,8 +80,8 @@ locate_interfaces() {
 parse_allowlist() {
   # Read each host's ports and optional secret, failing on malformed config.
   local config_tsv
-  config_tsv="$(yq -p="$POLICY_FORMAT" -o=tsv "$POLICY_QUERY" "$CONFIG_FILE")" \
-    || die "config file $CONFIG_FILE is not valid ${POLICY_FORMAT^^}"
+  config_tsv="$(yq -p=json -o=tsv '[ .hosts[] | [.name, (.ports | join(" ")), (.secret // "")] ]' "$CONFIG_FILE")" \
+    || die "config file $CONFIG_FILE is not valid JSON"
 
   # Validate each entry and sort it into a static seed or a domain's set list.
   while IFS=$'\t' read -r addr ports secret; do
@@ -197,16 +195,6 @@ write_resolver_conf() {
   fi
 }
 
-# Follow the home's policy where the stack mounts it, and the old policy everywhere else.
-if [ -f "$HOME_POLICY" ]; then
-  CONFIG_FILE=$HOME_POLICY
-  POLICY_FORMAT=json
-  POLICY_QUERY='[ .hosts[] | [.name, (.ports | join(" ")), (.secret // "")] ]'
-else
-  CONFIG_FILE=$OLD_POLICY
-  POLICY_FORMAT=toml
-  POLICY_QUERY='[ to_entries | .[] | [.key, (.value.ports | join(" ")), (.value.secret // "")] ]'
-fi
 [ -f "$CONFIG_FILE" ] || die "config file $CONFIG_FILE not found"
 
 fail_closed

@@ -1,0 +1,9 @@
+# A change on a home whose stack is down waits for its next start
+exec o3s firewall add example.com
+stdout '^Allowed example.com:443$'
+stdout '^The stack picks the change up when it starts$'
+! stdout 'Restarted'
+! grep restart docker.log
+
+-- o3s.json --
+{"$schema": "./.o3s/o3s.schema.json", "stores": [], "hosts": []}
