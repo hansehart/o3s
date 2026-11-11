@@ -33,8 +33,10 @@ profile_is_loaded() {
   return 1
 }
 
-# Seed each editable config file from its template if missing
-[ -f "$CONFIG_FILE" ]                   || cp .devcontainer/templates/o3s.json "$CONFIG_FILE"
+# Start a missing policy empty, in the shape o3s writes, so every host stays closed until allowed
+[ -f "$CONFIG_FILE" ] || printf '{\n  "$schema": "./.o3s/o3s.schema.json",\n  "stores": [],\n  "hosts": []\n}\n' > "$CONFIG_FILE"
+
+# Seed the workspace from its template if missing
 [ -f .devcontainer/o3s.code-workspace ] || cp .devcontainer/templates/o3s.code-workspace .devcontainer/o3s.code-workspace
 
 # Hold this host's secrets in a directory only this account reads
