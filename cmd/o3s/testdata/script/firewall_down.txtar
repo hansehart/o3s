@@ -6,4 +6,4 @@ stdout '^The stack picks the change up when it starts$'
 ! grep restart docker.log
 
 -- o3s.json --
-{"$schema": "./.o3s/o3s.schema.json", "stores": [], "hosts": []}
+{"$schema": "./.devcontainer/o3s.schema.json", "stores": [], "hosts": []}

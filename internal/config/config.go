@@ -15,7 +15,7 @@ const (
 	// File is the name of the settings file in an o3s home.
 	File = "o3s.json"
 	// schema is where the settings file finds the schema o3s writes beside it.
-	schema = "./.o3s/o3s.schema.json"
+	schema = "./.devcontainer/o3s.schema.json"
 )
 
 var (

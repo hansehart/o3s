@@ -5,7 +5,7 @@ cmp stdout want.txt
 
 -- o3s.json --
 {
-  "$schema": "./.o3s/o3s.schema.json",
+  "$schema": "./.devcontainer/o3s.schema.json",
   "stores": [],
   "hosts": [
     {"name": "example.com", "ports": [22, 443], "by": ["user"]},

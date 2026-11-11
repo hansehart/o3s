@@ -1,5 +1,5 @@
 {
-  "$schema": "./.o3s/o3s.schema.json",
+  "$schema": "./.devcontainer/o3s.schema.json",
   "stores": [
     {
       "id": "registry.example.com/features"

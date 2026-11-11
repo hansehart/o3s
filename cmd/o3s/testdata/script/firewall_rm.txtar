@@ -19,7 +19,7 @@ stderr 'unknown host absent.example'
 
 -- o3s.json --
 {
-  "$schema": "./.o3s/o3s.schema.json",
+  "$schema": "./.devcontainer/o3s.schema.json",
   "stores": [],
   "hosts": [
     {"name": "example.org", "ports": [443], "by": ["registry.example.com/features/tool"]},
@@ -29,7 +29,7 @@ stderr 'unknown host absent.example'
 }
 -- want.json --
 {
-  "$schema": "./.o3s/o3s.schema.json",
+  "$schema": "./.devcontainer/o3s.schema.json",
   "stores": [],
   "hosts": [
     {

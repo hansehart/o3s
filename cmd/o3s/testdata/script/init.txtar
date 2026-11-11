@@ -24,7 +24,7 @@ cmp o3s.json $WORK/want.json
 
 -- want.json --
 {
-  "$schema": "./.o3s/o3s.schema.json",
+  "$schema": "./.devcontainer/o3s.schema.json",
   "stores": [
     {
       "id": "ghcr.io/devcontainers/features"

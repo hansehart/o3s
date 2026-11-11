@@ -35,13 +35,13 @@ stderr 'inject without a secret'
 
 -- o3s.json --
 {
-  "$schema": "./.o3s/o3s.schema.json",
+  "$schema": "./.devcontainer/o3s.schema.json",
   "stores": [],
   "hosts": []
 }
 -- want.json --
 {
-  "$schema": "./.o3s/o3s.schema.json",
+  "$schema": "./.devcontainer/o3s.schema.json",
   "stores": [],
   "hosts": [
     {
