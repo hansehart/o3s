@@ -132,3 +132,35 @@ func TestInitTurnsAwayAnExistingHome(t *testing.T) {
 		t.Errorf("Init(%q) touched the folder: settings %q, stack %v", dir, kept, statErr)
 	}
 }
+
+// A release writes its own version as the tag of the o3s images, and any other build keeps latest.
+func TestInitPinsTheImagesToTheRelease(t *testing.T) {
+	tests := []struct {
+		version string
+		tag     string
+	}{
+		{"0.7.0", "0.7.0"},
+		{"dev", "latest"},
+		{"0.6.6-SNAPSHOT-03605dd", "latest"},
+	}
+	// Check every kind of build
+	for _, tt := range tests {
+		home.Version = tt.version
+		t.Cleanup(func() { home.Version = "dev" })
+		dir := anInitializedHome(t)
+
+		data, err := os.ReadFile(filepath.Join(dir, ".devcontainer", "compose.yaml"))
+
+		// Stop when the compose file fails to read
+		if err != nil {
+			t.Fatalf("ReadFile() = %v", err)
+		}
+		// Require both o3s images at the tag
+		for _, image := range []string{"ghcr.io/hansehart/o3s-base:", "ghcr.io/hansehart/o3s-gateway:"} {
+			// Report an image at another tag
+			if !bytes.Contains(data, []byte("image: "+image+tt.tag+"\n")) {
+				t.Errorf("version %s: compose lacks %s%s", tt.version, image, tt.tag)
+			}
+		}
+	}
+}
