@@ -126,6 +126,11 @@ func change(cmd *cobra.Command, apply func(*config.Config) error) error {
 	if err != nil {
 		return err
 	}
+	return restart(cmd, dir)
+}
+
+// restart restarts the home's stack so a saved change takes effect, and names how it does.
+func restart(cmd *cobra.Command, dir string) error {
 	running, err := stack.Restart(cmd.Context(), dir)
 	// Hand back a stack that fails to restart, its settings already saved
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 	"io"
 
 	"github.com/hansehart/o3s/internal/config"
+	"github.com/hansehart/o3s/internal/registry"
 	"github.com/hansehart/o3s/internal/secrets"
 )
 
@@ -44,5 +45,5 @@ func isUsage(err error) bool {
 	if errors.Is(err, config.ErrMalformed) {
 		return false
 	}
-	return errors.Is(err, ErrUsage) || errors.Is(err, config.ErrInvalid) || errors.Is(err, secrets.ErrInvalid)
+	return errors.Is(err, ErrUsage) || errors.Is(err, config.ErrInvalid) || errors.Is(err, secrets.ErrInvalid) || errors.Is(err, registry.ErrInvalid)
 }

@@ -1,0 +1,52 @@
+# Removing a feature drops it, its env, and the hosts it alone needs
+cp o3s.json.in o3s.json
+exec o3s feature add $REGISTRY/features/tool
+exec o3s feature rm $REGISTRY/features/tool
+cmpenv stdout removed.txt
+cmp .devcontainer/devcontainer.json want.jsonc
+cmp o3s.json want.json
+
+# A feature the config lacks is turned away
+! exec o3s feature rm $REGISTRY/features/tool
+stderr 'unknown feature .*/features/tool'
+
+-- stack-up --
+-- o3s.json.in --
+{"$schema": "./.devcontainer/o3s.schema.json", "stores": [], "hosts": [{"name": "example.org", "ports": [443], "by": ["user"]}]}
+-- .devcontainer/devcontainer.json --
+{
+    "features": {},
+    "containerEnv": {
+        "EXAMPLE_LANG": "en"
+    }
+}
+-- removed.txt --
+$REGISTRY/features/tool
+  - example.com:443
+  - EXAMPLE_MODE=strict
+  - EXAMPLE_HOME=/home/ubuntu/features/$REGISTRY/features/tool
+Removed $REGISTRY/features/tool
+Restarted gateway
+-- want.jsonc --
+{
+    "features": {},
+    "containerEnv": {
+        "EXAMPLE_LANG": "en"
+    }
+}
+-- want.json --
+{
+  "$schema": "./.devcontainer/o3s.schema.json",
+  "stores": [],
+  "hosts": [
+    {
+      "name": "example.org",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    }
+  ]
+}

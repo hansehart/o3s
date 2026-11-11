@@ -28,7 +28,7 @@ func newStoreAdd() *cobra.Command {
 		Args:  usage(cobra.ExactArgs(1)),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id := args[0]
-			var features []string
+			var features []registry.Feature
 			_, err := edit(func(c *config.Config) error {
 				// Turn away a store id that breaks a rule
 				if _, err := c.AddStore(id); err != nil {
@@ -46,7 +46,7 @@ func newStoreAdd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Fprintf(cmd.OutOrStdout(), "%s\n  + %s\nAdded %s\n", id, strings.Join(features, ", "), id)
+			fmt.Fprintf(cmd.OutOrStdout(), "%s\n  + %s\nAdded %s\n", id, strings.Join(ids(features), ", "), id)
 			return nil
 		},
 	}
@@ -106,4 +106,14 @@ func newStoreLs() *cobra.Command {
 			return w.Flush()
 		},
 	}
+}
+
+// ids lists the ids of features.
+func ids(features []registry.Feature) []string {
+	out := make([]string, len(features))
+	// Take every feature's id
+	for i, f := range features {
+		out[i] = f.ID
+	}
+	return out
 }

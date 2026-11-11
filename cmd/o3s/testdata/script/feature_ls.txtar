@@ -1,0 +1,20 @@
+# Every feature shows its tag and the hosts it needs, read from the home alone
+exec o3s feature ls
+stdout '^FEATURE +VERSION +HOSTS$'
+stdout '^registry\.example\.com/features/tool +2 +example\.com, api\.example\.com$'
+
+# A feature without a tag follows the store's newest release
+stdout '^registry\.example\.com/features/other +latest *$'
+
+-- o3s.json --
+{"$schema": "./.devcontainer/o3s.schema.json", "stores": [], "hosts": [
+  {"name": "example.com", "ports": [443], "by": ["registry.example.com/features/tool"]},
+  {"name": "api.example.com", "ports": [443], "by": ["registry.example.com/features/tool", "user"]}
+]}
+-- .devcontainer/devcontainer.json --
+{
+    "features": {
+        "registry.example.com/features/tool:2": {},
+        "registry.example.com/features/other": {}
+    }
+}

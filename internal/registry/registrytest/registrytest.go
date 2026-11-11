@@ -46,12 +46,22 @@ func (r *Registry) Close() { r.server.Close() }
 
 // Push publishes a store that holds a collection of the features named.
 func (r *Registry) Push(repo string, ids ...string) error {
-	features := make([]map[string]string, len(ids))
-	// Describe every feature by its id
+	features := make([]string, len(ids))
+	// Describe every feature by its id alone
 	for i, id := range ids {
-		features[i] = map[string]string{"id": id}
+		features[i] = fmt.Sprintf(`{"id": %q}`, id)
 	}
-	body, err := json.Marshal(map[string]any{"sourceInformation": map[string]string{}, "features": features})
+	return r.PushFeatures(repo, features...)
+}
+
+// PushFeatures publishes a store whose collection holds each feature's metadata as given.
+func (r *Registry) PushFeatures(repo string, features ...string) error {
+	raw := make([]json.RawMessage, len(features))
+	// Take every feature's metadata as it stands
+	for i, f := range features {
+		raw[i] = json.RawMessage(f)
+	}
+	body, err := json.Marshal(map[string]any{"sourceInformation": map[string]string{}, "features": raw})
 	// Hand back a collection that fails to encode
 	if err != nil {
 		return err

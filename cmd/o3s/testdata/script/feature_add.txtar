@@ -1,0 +1,70 @@
+# A feature joins the config with its options and env, and the allowlist with its hosts
+exec o3s feature add $REGISTRY/features/tool
+env 'TOKEN=$TOKEN'
+cmpenv stdout added.txt
+cmpenv .devcontainer/devcontainer.json want.jsonc
+grep '"by": \[\n +"user",\n +"'${REGISTRY@R}'/features/tool"' o3s.json
+grep '"ports": \[\n +22,\n +443' o3s.json
+cmpenv docker.log want.log
+
+# Adding the feature again keeps both files as they were
+cp o3s.json before.json
+exec o3s feature add $REGISTRY/features/tool:2
+cmpenv .devcontainer/devcontainer.json want.jsonc
+cmp o3s.json before.json
+
+# A feature that needs no host leaves the stack untouched and names no secret
+rm docker.log
+exec o3s feature add $REGISTRY/features/go
+stdout '^'${REGISTRY@R}'/features/go:1$'
+! stdout 'Restarted|⚠'
+stdout '^Rebuild the cage to install it$'
+! exists docker.log
+
+# A feature the store lacks is turned away
+! exec o3s feature add $REGISTRY/features/absent
+stderr 'unknown feature .*/features/absent'
+
+# An id that names no feature is a usage error
+! exec o3s feature add tool
+stderr 'invalid feature "tool"'
+stderr 'for usage'
+
+-- stack-up --
+-- o3s.json --
+{"$schema": "./.devcontainer/o3s.schema.json", "stores": [], "hosts": [{"name": "example.com", "ports": [22], "by": ["user"]}]}
+-- .devcontainer/devcontainer.json --
+{
+    // Additional software layered onto the o3s image
+    "features": {},
+    // Variables every process in the cage runs with
+    "containerEnv": {}
+}
+-- added.txt --
+$REGISTRY/features/tool:2
+  + example.com:443  EXAMPLE_TOKEN ⚠
+  + EXAMPLE_MODE=strict
+  + EXAMPLE_HOME=/home/ubuntu/features/$REGISTRY/features/tool
+Added $REGISTRY/features/tool
+⚠ EXAMPLE_TOKEN waits for its value: echo "$TOKEN" | o3s secret add EXAMPLE_TOKEN
+Restarted gateway
+Rebuild the cage to install it
+-- want.jsonc --
+{
+    // Additional software layered onto the o3s image
+    "features": {
+        "$REGISTRY/features/tool:2": {
+            "stateDir": "/home/ubuntu/features/$REGISTRY/features/tool"
+        }
+    },
+    // Variables every process in the cage runs with
+    "containerEnv": {
+        "EXAMPLE_MODE": "strict",
+        "EXAMPLE_HOME": "/home/ubuntu/features/$REGISTRY/features/tool"
+    }
+}
+-- want.log --
+ps -q --filter label=com.docker.compose.project.working_dir=$WORK/.devcontainer --filter label=com.docker.compose.service=gateway
+ps -q --filter label=com.docker.compose.project.working_dir=$WORK/.devcontainer --filter label=com.docker.compose.service=proxy
+restart gateway-id
+restart proxy-id
