@@ -12,7 +12,7 @@
 #        Dev Containers extension, command "Dev Containers: Rebuild and Reopen in Container".
 #
 # SEE ALSO
-#        apparmor.conf, config.toml, devcontainer.json
+#        apparmor.conf, devcontainer.json, o3s.json
 
 # Stack name
 name: o3s
@@ -104,7 +104,7 @@ services:
       GW_CAGE_IP: *gateway_ip
     # The allow-listed hosts
     volumes:
-      - ./config.toml:/config/config.toml:ro
+      - ../o3s.json:/config/o3s.json:ro
     networks:
       cage:
         ipv4_address: *gateway_ip
@@ -143,7 +143,7 @@ services:
       # Signing CA, DH parameters and the real tokens
       - ${HOME}/.config/o3s:/config:ro
       # Which hosts are allowed and which of them inject which secret
-      - ./config.toml:/etc/o3s/config.toml:ro
+      - ../o3s.json:/etc/o3s/o3s.json:ro
       # Injection logic (not secret)
       - ./proxy/inject.py:/addons/inject.py:ro
     # Take the redirected cage HTTPS, holding each connection until the handshake names its host

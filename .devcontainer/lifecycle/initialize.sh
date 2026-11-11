@@ -16,7 +16,7 @@ set -euo pipefail
 log() { echo "[o3s] INFO: $*"; }
 
 ENV_FILE=.devcontainer/.env
-CONFIG_FILE=.devcontainer/config.toml
+CONFIG_FILE=o3s.json
 PROFILE_FILE=.devcontainer/apparmor.conf
 PROFILE_NAME=o3s-cage
 INSTALLED_PROFILE=/etc/apparmor.d/$PROFILE_NAME
@@ -34,7 +34,7 @@ profile_is_loaded() {
 }
 
 # Seed each editable config file from its template if missing
-[ -f "$CONFIG_FILE" ]                   || cp .devcontainer/templates/config.toml "$CONFIG_FILE"
+[ -f "$CONFIG_FILE" ]                   || cp .devcontainer/templates/o3s.json "$CONFIG_FILE"
 [ -f .devcontainer/o3s.code-workspace ] || cp .devcontainer/templates/o3s.code-workspace .devcontainer/o3s.code-workspace
 
 # Hold this host's secrets in a directory only this account reads
@@ -64,7 +64,7 @@ fi
   || install -m 600 .devcontainer/templates/secrets.env "$SECRETS_DIR/secrets.env"
 
 # Collect the secret name each credential-inject host declares
-SECRETS="$(grep -oE '^[[:space:]]*secret[[:space:]]*=[[:space:]]*"[^"]+"' "$CONFIG_FILE" \
+SECRETS="$(grep -oE '"secret"[[:space:]]*:[[:space:]]*"[^"]+"' "$CONFIG_FILE" \
            | sed -E 's/.*"([^"]+)"/\1/' || true)"
 
 # Carry the marker across runs so a rebuild keeps the value the cage already holds

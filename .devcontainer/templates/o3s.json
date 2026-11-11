@@ -1,0 +1,222 @@
+{
+  "$schema": "./.o3s/o3s.schema.json",
+  "stores": [],
+  "hosts": [
+    {
+      "name": "api.anthropic.com",
+      "ports": [
+        443
+      ],
+      "secret": "ANTHROPIC_API_KEY",
+      "inject": [
+        "header"
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "chatgpt.com",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "platform.claude.com",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "docker-images-prod.6aa30f8b08e16409b46e0173d6de2f56.r2.cloudflarestorage.com",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "production.cloudfront.docker.com",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "*.docker.io",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "ghcr.io",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "github.com",
+      "ports": [
+        22,
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "api.github.com",
+      "ports": [
+        443
+      ],
+      "secret": "GH_TOKEN",
+      "inject": [
+        "header"
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "gitlab.com",
+      "ports": [
+        22,
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "api.mistral.ai",
+      "ports": [
+        443
+      ],
+      "secret": "MISTRAL_API_KEY",
+      "inject": [
+        "header"
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "registry.npmjs.org",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "api.openai.com",
+      "ports": [
+        443
+      ],
+      "secret": "OPENAI_API_KEY",
+      "inject": [
+        "header"
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "auth.openai.com",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "pypi.org",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "files.pythonhosted.org",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "texlive.info",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "marketplace.visualstudio.com",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "update.code.visualstudio.com",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "*.vsassets.io",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "main.vscode-cdn.net",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    },
+    {
+      "name": "vscode.blob.core.windows.net",
+      "ports": [
+        443
+      ],
+      "by": [
+        "user"
+      ]
+    }
+  ]
+}

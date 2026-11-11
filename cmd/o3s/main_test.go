@@ -40,7 +40,7 @@ func TestScripts(t *testing.T) {
 			env.Setenv("HOME", env.WorkDir)
 			bin := filepath.Join(env.WorkDir, ".bin")
 			// Hand back a fake engine that stays unwritten
-			if err := os.MkdirAll(bin, 0o755); err != nil {
+			if err := os.MkdirAll(bin, 0o750); err != nil {
 				return err
 			}
 			// Hand back a fake engine that stays unwritten
