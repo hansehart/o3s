@@ -225,3 +225,71 @@ func TestLoadTurnsAwayABrokenConfig(t *testing.T) {
 		t.Errorf("Load() = nil, want an error")
 	}
 }
+
+// A feature moved to another tag keeps the options the user gave it.
+func TestRetagFeatureKeepsTheOptions(t *testing.T) {
+	text := `{
+    "features": {
+        "registry.example.com/features/tool:1": {
+            "mode": "strict"
+        }
+    }
+}
+`
+	var moved bool
+	got := edited(t, text, func(c *devcontainer.Config) {
+		moved = c.RetagFeature("registry.example.com/features/tool", "registry.example.com/features/tool:2")
+	})
+
+	want := `{
+    "features": {
+        "registry.example.com/features/tool:2": {
+            "mode": "strict"
+        }
+    }
+}
+`
+	// Report a config that differs
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("config (-want +got):\n%s", diff)
+	}
+	// Require the move to be reported
+	if !moved {
+		t.Errorf("RetagFeature() = false, want true")
+	}
+}
+
+// A variable's value comes back as the config sets it.
+func TestEnvReadsAVariable(t *testing.T) {
+	home := aHomeWith(t, `{"containerEnv": {"EXAMPLE_MODE": "strict"}}`)
+	c, err := devcontainer.Load(home)
+	// Stop when the config fails to load
+	if err != nil {
+		t.Fatalf("Load() = %v", err)
+	}
+
+	value, ok := c.Env("EXAMPLE_MODE")
+	_, absent := c.Env("EXAMPLE_HOME")
+
+	// Require the value set, and none for a variable the config lacks
+	if value != "strict" || !ok || absent {
+		t.Errorf("Env() = %q, %v and %v, want strict, true and false", value, ok, absent)
+	}
+}
+
+// Reading a config leaves it as it was.
+func TestReadingLeavesTheConfigAsItWas(t *testing.T) {
+	text := "{\n    \"name\": \"o3s\"\n}\n"
+
+	got := edited(t, text, func(c *devcontainer.Config) {
+		c.Features()
+		c.Env("EXAMPLE_MODE")
+		c.RemoveEnv("EXAMPLE_MODE")
+		c.RetagFeature("registry.example.com/features/tool", "registry.example.com/features/tool:2")
+	})
+
+	// Report a config that changed
+	if got != text {
+		t.Errorf("config after reading = %q, want %q", got, text)
+	}
+}

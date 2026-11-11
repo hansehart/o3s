@@ -1,0 +1,33 @@
+# A new home already holds what the binary and its stores ship
+exec o3s init
+exec o3s update
+stdout '^Up to date$'
+
+# Without a terminal and without --yes, nothing answers, so the update writes nothing
+cp edited.yaml .devcontainer/compose.yaml
+! exec o3s update
+stdout '^  ~ compose\.yaml$'
+stderr 'pass --yes'
+stderr 'for usage'
+cmp .devcontainer/compose.yaml edited.yaml
+
+# --yes brings the stack back to what the binary ships
+exec o3s update --yes
+stdout '^\.devcontainer/$'
+stdout '^  ~ compose\.yaml$'
+stdout '^Updated$'
+stdout '^Rebuild the cage to apply it$'
+exec o3s update
+stdout '^Up to date$'
+
+# A feature on an older major version moves to the store's
+exec o3s feature add $REGISTRY/features/tool:1
+exec o3s update --yes
+stdout '/features/tool   1 → 2$'
+! stdout 'Restarted'
+grep ${REGISTRY@R}/features/tool:2 .devcontainer/devcontainer.json
+exec o3s update
+stdout '^Up to date$'
+
+-- edited.yaml --
+services: {}

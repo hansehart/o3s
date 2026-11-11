@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"context"
-	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -15,25 +13,11 @@ import (
 	"github.com/hansehart/o3s/internal/registry"
 )
 
-// featuresRoot is where the cage keeps every feature's state dir.
-const featuresRoot = "/home/ubuntu/features/"
-
-// errUnknownFeature marks a feature its store or the home lacks.
-var errUnknownFeature = errors.New("unknown feature")
-
 // newFeature builds the commands that add, remove and list the features the cage installs.
 func newFeature() *cobra.Command {
 	f := group("feature", "Add or remove the features the cage installs")
 	f.AddCommand(newFeatureAdd(), newFeatureRm(), newFeatureLs())
 	return f
-}
-
-// setup is what a feature sets up in a home: its options, the hosts it needs and its env.
-type setup struct {
-	ref     registry.Ref
-	options map[string]string
-	hosts   []registry.Host
-	env     []registry.Env
 }
 
 // newFeatureAdd builds the command that adds a feature with the hosts and env it needs.
@@ -48,27 +32,27 @@ func newFeatureAdd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			s, err := lookup(cmd.Context(), ref)
+			s, err := new(registry.Resolver).Resolve(cmd.Context(), ref)
 			// Hand back a feature its store fails to offer
 			if err != nil {
 				return err
 			}
-			pkg := s.ref.Package()
+			pkg := s.Ref.Package()
 			dir, c, dc, err := loadHome()
 			// Hand back a home that fails to load
 			if err != nil {
 				return err
 			}
 			// Open every host the feature needs
-			for _, h := range s.hosts {
+			for _, h := range s.Hosts {
 				// Name the host that breaks a rule, the files left as they were
 				if err := c.Need(pkg, config.Change{Name: h.Name, Ports: h.Ports, Secret: h.Secret, Inject: h.Inject}); err != nil {
 					return fmt.Errorf("%s needs %s: %s", pkg, h.Name, err.Error())
 				}
 			}
-			dc.SetFeature(pkg, s.ref.String(), s.options)
+			dc.SetFeature(pkg, s.Ref.String(), s.Options)
 			// Set every variable the feature brings
-			for _, e := range s.env {
+			for _, e := range s.Env {
 				dc.SetEnv(e.Name, e.Value)
 			}
 			// Hand back a home that fails to save
@@ -81,11 +65,11 @@ func newFeatureAdd() *cobra.Command {
 				return err
 			}
 			out := cmd.OutOrStdout()
-			fmt.Fprintln(out, s.ref)
+			fmt.Fprintln(out, s.Ref)
 			var waiting []string
 			// Show every host the feature opens, and the secret it carries
-			for _, h := range s.hosts {
-				line := fmt.Sprintf("  + %s:%s", h.Name, joinPorts(portsOf(h)))
+			for _, h := range s.Hosts {
+				line := fmt.Sprintf("  + %s:%s", h.Name, joinPorts(registry.PortsOf(h)))
 				// Name the secret, and warn while it waits for its value
 				if h.Secret != "" {
 					line += "  " + h.Secret
@@ -98,7 +82,7 @@ func newFeatureAdd() *cobra.Command {
 				fmt.Fprintln(out, line)
 			}
 			// Show every variable the feature sets
-			for _, e := range s.env {
+			for _, e := range s.Env {
 				fmt.Fprintf(out, "  + %s=%s\n", e.Name, e.Value)
 			}
 			fmt.Fprintf(out, "Added %s\n", pkg)
@@ -107,7 +91,7 @@ func newFeatureAdd() *cobra.Command {
 				fmt.Fprintf(out, "⚠ %s waits for its value: echo \"$TOKEN\" | o3s secret add %s\n", name, name)
 			}
 			// Restart the stack where the allowlist changed
-			if len(s.hosts) > 0 {
+			if len(s.Hosts) > 0 {
 				// Hand back a stack that fails to restart
 				if err := restart(cmd, dir); err != nil {
 					return err
@@ -139,9 +123,9 @@ func newFeatureRm() *cobra.Command {
 			}
 			// Turn away a feature the home lacks
 			if !dc.RemoveFeature(pkg) {
-				return fmt.Errorf("%w %s", errUnknownFeature, pkg)
+				return fmt.Errorf("%w %s", registry.ErrUnknownFeature, pkg)
 			}
-			s, err := lookup(cmd.Context(), ref)
+			s, err := new(registry.Resolver).Resolve(cmd.Context(), ref)
 			// Hand back a feature whose env stays unknown, the files left as they were
 			if err != nil {
 				return err
@@ -154,7 +138,7 @@ func newFeatureRm() *cobra.Command {
 			dropped := c.Release(pkg)
 			var removed []registry.Env
 			// Drop every variable the feature set
-			for _, e := range s.env {
+			for _, e := range s.Env {
 				// Keep the variables the config holds
 				if dc.RemoveEnv(e.Name) {
 					removed = append(removed, e)
@@ -218,56 +202,6 @@ func newFeatureLs() *cobra.Command {
 			return w.Flush()
 		},
 	}
-}
-
-// lookup finds a feature in its store and works out what it sets up, its tag the store's major
-// version unless the id names one.
-func lookup(ctx context.Context, ref registry.Ref) (setup, error) {
-	features, err := registry.Collection(ctx, ref.Store)
-	// Name the store whose features stay out of reach
-	if err != nil {
-		return setup{}, fmt.Errorf("read the features of %s: %w", ref.Store, err)
-	}
-	i := slices.IndexFunc(features, func(f registry.Feature) bool { return f.ID == ref.ID })
-	// Turn away a feature the store lacks
-	if i < 0 {
-		return setup{}, fmt.Errorf("%w %s", errUnknownFeature, ref.Package())
-	}
-	f := features[i]
-	// Follow the store's major version where the id names no tag
-	if ref.Tag == "" {
-		ref.Tag = major(f.Version)
-	}
-	dir := featuresRoot + ref.Package()
-	s := setup{ref: ref, hosts: f.Hosts}
-	// Give the feature its state dir where it takes one
-	if slices.Contains(f.Options, "stateDir") {
-		s.options = map[string]string{"stateDir": dir}
-	}
-	// Fill the state dir into every variable
-	for _, e := range f.Env {
-		s.env = append(s.env, registry.Env{Name: e.Name, Value: strings.ReplaceAll(e.Value, "${stateDir}", dir)})
-	}
-	return s, nil
-}
-
-// major reads the major part of a version, and latest for a feature without one.
-func major(version string) string {
-	m, _, _ := strings.Cut(version, ".")
-	// Follow the newest release of a feature without a version
-	if m == "" {
-		return "latest"
-	}
-	return m
-}
-
-// portsOf hands back the ports a feature names for a host, the HTTPS port where it names none.
-func portsOf(h registry.Host) []int {
-	// Take the HTTPS port where the feature names none
-	if len(h.Ports) == 0 {
-		return []int{443}
-	}
-	return h.Ports
 }
 
 // loadHome reads the settings and the dev container config of the home the command runs in.

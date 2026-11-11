@@ -7,10 +7,12 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/tailscale/hujson"
 
 	"github.com/hansehart/o3s"
+	"github.com/hansehart/o3s/internal/atomicfile"
 	"github.com/hansehart/o3s/internal/config"
 )
 
@@ -35,15 +37,36 @@ func Init(dir string) ([]string, error) {
 		return nil, err
 	}
 	written := []string{filepath.Join(dir, config.File)}
-	err := fs.WalkDir(o3s.Stack, stackDir, func(path string, d fs.DirEntry, err error) error {
-		// Hand back a walk that fails
-		if err != nil {
-			return err
+	files, err := stack()
+	// Hand back a stack the binary fails to hand over
+	if err != nil {
+		return written, err
+	}
+	// Write every file of the stack
+	for _, f := range files {
+		target := filepath.Join(dir, stackDir, filepath.FromSlash(f.path))
+		// Hand back a file that stays unwritten
+		if err := writeFile(target, f.data); err != nil {
+			return written, err
 		}
-		target := filepath.Join(dir, filepath.FromSlash(path))
-		// Create every folder of the stack
-		if d.IsDir() {
-			return os.MkdirAll(target, 0o755) //nolint:gosec // the stack's folders are read by the containers
+		written = append(written, target)
+	}
+	return written, nil
+}
+
+// file is one file of the stack, its path inside the stack folder.
+type file struct {
+	path string
+	data []byte
+}
+
+// stack hands back every file of the stack the binary ships, its config without features.
+func stack() ([]file, error) {
+	var files []file
+	err := fs.WalkDir(o3s.Stack, stackDir, func(path string, d fs.DirEntry, err error) error {
+		// Hand back a walk that fails, and take folders as they come with their files
+		if err != nil || d.IsDir() {
+			return err
 		}
 		data, err := o3s.Stack.ReadFile(path)
 		// Hand back a file the binary fails to hand over
@@ -58,10 +81,19 @@ func Init(dir string) ([]string, error) {
 				return err
 			}
 		}
-		written = append(written, target)
-		return os.WriteFile(target, data, 0o644) //nolint:gosec // the stack's files are read by the containers
+		files = append(files, file{path: strings.TrimPrefix(path, stackDir+"/"), data: data})
+		return nil
 	})
-	return written, err
+	return files, err
+}
+
+// writeFile writes a file of the stack in a single step, with the folders it needs.
+func writeFile(path string, data []byte) error {
+	// Hand back folders that stay uncreated
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil { //nolint:gosec // the stack's folders are read by the containers
+		return err
+	}
+	return atomicfile.Write(path, data, 0o644)
 }
 
 // withoutFeatures empties a config's features and keeps everything else.
