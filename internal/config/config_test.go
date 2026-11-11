@@ -104,3 +104,35 @@ func TestNewOffersBothStoresAndNoHost(t *testing.T) {
 		t.Errorf("New() (-want +got):\n%s", diff)
 	}
 }
+
+// Loading a hand-edited file holds every entry to the rules o3s writes by, and names the first
+// entry that breaks one.
+func TestLoadNamesTheFirstBrokenEntry(t *testing.T) {
+	files := map[string]string{
+		"port past the range": `{"hosts": [{"name": "example.com", "ports": [70000], "by": ["user"]}]}`,
+		"uppercase host":      `{"hosts": [{"name": "Example.com", "ports": [443], "by": ["user"]}]}`,
+		"inject alone":        `{"hosts": [{"name": "example.com", "ports": [443], "inject": ["header"], "by": ["user"]}]}`,
+		"no port":             `{"hosts": [{"name": "example.com", "ports": [], "by": ["user"]}]}`,
+		"nobody needs it":     `{"hosts": [{"name": "example.com", "ports": [443], "by": []}]}`,
+		"host listed twice":   `{"hosts": [{"name": "example.com", "ports": [443], "by": ["user"]}, {"name": "example.com", "ports": [22], "by": ["user"]}]}`,
+		"store without an id": `{"stores": [{"id": ""}], "hosts": []}`,
+		"store listed twice":  `{"stores": [{"id": "registry.example.com/features"}, {"id": "registry.example.com/features"}], "hosts": []}`,
+	}
+	// Check every broken file in its own home
+	for name, content := range files {
+		t.Run(name, func(t *testing.T) {
+			home := t.TempDir()
+			// Stop when the broken file stays unwritten
+			if err := os.WriteFile(filepath.Join(home, config.File), []byte(content), 0o600); err != nil {
+				t.Fatalf("Setup: %v", err)
+			}
+
+			_, err := config.Load(home)
+
+			// Require the broken entry named as a broken file
+			if !errors.Is(err, config.ErrMalformed) {
+				t.Errorf("Load(%s) = %v, want ErrMalformed", content, err)
+			}
+		})
+	}
+}
