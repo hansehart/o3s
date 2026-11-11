@@ -25,7 +25,7 @@ func newRoot(s Streams) *cobra.Command {
 	root.SetFlagErrorFunc(func(_ *cobra.Command, err error) error {
 		return fmt.Errorf("%w: %w", ErrUsage, err)
 	})
-	root.AddCommand(newFirewall(), newSecret())
+	root.AddCommand(newInit(), newFirewall(), newSecret())
 	return root
 }
 
@@ -52,7 +52,7 @@ func group(use, short string) *cobra.Command {
 	}
 }
 
-// home finds the o3s home a command works on, the folder it runs in.
-func home() (string, error) {
+// workingHome finds the o3s workingHome a command works on, the folder it runs in.
+func workingHome() (string, error) {
 	return os.Getwd()
 }

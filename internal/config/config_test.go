@@ -91,3 +91,17 @@ func TestLoadTurnsAwayAMalformedFile(t *testing.T) {
 		t.Errorf("Load(%q) = nil, want an error for the broken file", home)
 	}
 }
+
+// A new home offers the official and the o3s feature stores, and allows no host.
+func TestNewOffersBothStoresAndNoHost(t *testing.T) {
+	got := config.New()
+
+	want := config.Config{
+		Stores: []config.Store{{ID: "ghcr.io/devcontainers/features"}, {ID: "ghcr.io/hansehart/devcontainer-features"}},
+		Hosts:  []config.Host{},
+	}
+	// Require both stores in order and an empty allowlist
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("New() (-want +got):\n%s", diff)
+	}
+}

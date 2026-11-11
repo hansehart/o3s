@@ -63,6 +63,14 @@ type Change struct {
 	Inject []string
 }
 
+// New hands back the settings of a new home: the official and the o3s feature stores, and no host.
+func New() Config {
+	return Config{
+		Stores: []Store{{ID: "ghcr.io/devcontainers/features"}, {ID: "ghcr.io/hansehart/devcontainer-features"}},
+		Hosts:  []Host{},
+	}
+}
+
 // Load reads the settings of the o3s home in a folder.
 func Load(home string) (Config, error) {
 	data, err := os.ReadFile(filepath.Join(home, File))
