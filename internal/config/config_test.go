@@ -23,7 +23,7 @@ func anUnorderedConfig() config.Config {
 	}
 }
 
-// Saving writes schema, stores and hosts in order with a two-space indent.
+// Saving writes one stable shape, so a diff shows each change alone.
 func TestSaveWritesOneStableShape(t *testing.T) {
 	home := t.TempDir()
 	c := anUnorderedConfig()

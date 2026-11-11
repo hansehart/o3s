@@ -12,7 +12,7 @@ import (
 // update rewrites the expected files inside the scripts to what the binary now writes.
 var update = flag.Bool("update", false, "rewrite the expected files inside the scripts")
 
-// fakeDocker logs every call and reports a running stack while a stack-up file exists.
+// fakeDocker stands in for the container engine, so a script sees which restarts a change asks for.
 const fakeDocker = `#!/bin/sh
 echo "$*" >> "$WORK/docker.log"
 # Answer each question about the stack, and any restart, the way a host's engine would

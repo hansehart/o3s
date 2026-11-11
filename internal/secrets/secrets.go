@@ -89,7 +89,7 @@ func (s Store) Names() []string {
 	return names
 }
 
-// Set stores a value on the name's first line, drops its later lines, and reports a replaced value.
+// Set stores a secret so no older value shadows it, and reports whether it replaced one.
 func (s *Store) Set(name, value string) (bool, error) {
 	value = strings.TrimSpace(value)
 	// Turn away a name the proxy reads under no variable

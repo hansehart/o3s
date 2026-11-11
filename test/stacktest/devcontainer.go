@@ -44,7 +44,7 @@ const composeLine = `"dockerComposeFile": "compose.yaml"`
 // devConfigs holds, per test, the dev config written for it.
 var devConfigs sync.Map
 
-// devConfig writes the daily config with the dev overlay, once per test.
+// devConfig hands the editor's config a stack built from this branch.
 func devConfig(tb testing.TB) string {
 	tb.Helper()
 	// Hand back the config this test already holds, so its stack keeps one identity
