@@ -26,6 +26,20 @@ esac
 exit 0
 `
 
+// tool is a feature that needs a host with a secret, sets env, and keeps its data in a state dir.
+const tool = `{
+  "id": "tool",
+  "version": "2.1.0",
+  "options": {"stateDir": {"type": "string", "default": ""}},
+  "customizations": {"o3s": {
+    "hosts": [{"name": "example.com", "ports": [443], "secret": "EXAMPLE_TOKEN", "description": "API"}],
+    "env": [
+      {"name": "EXAMPLE_MODE", "value": "strict", "description": "Mode"},
+      {"name": "EXAMPLE_HOME", "value": "${stateDir}", "description": "Data"}
+    ]
+  }}
+}`
+
 // TestMain lets the scripts run this binary as o3s.
 func TestMain(m *testing.M) {
 	testscript.Main(m, map[string]func(){"o3s": main})
@@ -40,8 +54,8 @@ func TestScripts(t *testing.T) {
 	}
 	t.Cleanup(reg.Close)
 	// Stop when the store fails to publish
-	if err := reg.Push("features", "node", "go", "python"); err != nil {
-		t.Fatalf("Setup: Push(features) = %v", err)
+	if err := reg.PushFeatures("features", `{"id": "node"}`, `{"id": "go", "version": "1.4.0"}`, tool); err != nil {
+		t.Fatalf("Setup: PushFeatures(features) = %v", err)
 	}
 	testscript.Run(t, testscript.Params{
 		Dir:                 "testdata/script",

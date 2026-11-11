@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/hansehart/o3s/internal/atomicfile"
 	"github.com/hansehart/o3s/internal/config"
 )
 
@@ -147,27 +148,11 @@ func (s Store) String() string {
 
 // Save writes the file for its owner alone and replaces it in a single step.
 func (s Store) Save(path string) error {
-	dir := filepath.Dir(path)
 	// Hand back a folder that stays uncreated
-	if err := os.MkdirAll(dir, 0o700); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
 	}
-	tmp, err := os.CreateTemp(dir, "."+File+".*")
-	// Hand back a folder that takes no new file
-	if err != nil {
-		return err
-	}
-	// Clean up the temporary file whenever it stays behind
-	defer os.Remove(tmp.Name())
-	// Hand back a write that fails part way
-	if _, err := tmp.WriteString(s.String()); err != nil {
-		return errors.Join(err, tmp.Close())
-	}
-	// Hand back a file that fails to close
-	if err := tmp.Close(); err != nil {
-		return err
-	}
-	return os.Rename(tmp.Name(), path)
+	return atomicfile.Write(path, []byte(s.String()), 0o600)
 }
 
 // parse reads one line the way the proxy does.

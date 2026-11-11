@@ -31,5 +31,5 @@ ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt \
     SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt \
     GIT_SSL_CAINFO=/etc/ssl/certs/ca-certificates.crt
 
-RUN mkdir -p /home/ubuntu/features /home/ubuntu/projects \
+RUN mkdir -p /home/ubuntu/state /home/ubuntu/projects \
  && chown -R ubuntu:ubuntu /home/ubuntu

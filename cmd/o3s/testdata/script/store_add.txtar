@@ -31,5 +31,5 @@ cmp o3s.json want.json
 }
 -- added.txt --
 $REGISTRY/features
-  + go, node, python
+  + go, node, tool
 Added $REGISTRY/features

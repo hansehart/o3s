@@ -9,6 +9,8 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+
+	"github.com/hansehart/o3s/internal/atomicfile"
 )
 
 const (
@@ -146,29 +148,5 @@ func (c *Config) Save(home string) error {
 	if err != nil {
 		return err
 	}
-	return replace(filepath.Join(home, File), append(data, '\n'))
-}
-
-// replace writes a file beside its target and renames it into place.
-func replace(path string, data []byte) error {
-	tmp, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".*")
-	// Hand back a folder that takes no new file
-	if err != nil {
-		return err
-	}
-	// Clean up the temporary file whenever it stays behind
-	defer os.Remove(tmp.Name())
-	// Let the stack read the settings it enforces
-	if err := tmp.Chmod(0o644); err != nil {
-		return errors.Join(err, tmp.Close())
-	}
-	// Hand back a write that fails part way
-	if _, err := tmp.Write(data); err != nil {
-		return errors.Join(err, tmp.Close())
-	}
-	// Hand back a file that fails to close
-	if err := tmp.Close(); err != nil {
-		return err
-	}
-	return os.Rename(tmp.Name(), path)
+	return atomicfile.Write(filepath.Join(home, File), append(data, '\n'), 0o644)
 }
