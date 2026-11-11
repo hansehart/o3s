@@ -21,7 +21,7 @@ var aHome = Home{
 }
 
 // walk answers each question the core asks in turn and hands back what it asked and the command it ends in.
-func walk(t *testing.T, h Home, answers ...[]string) ([]Question, Command) {
+func walk(t *testing.T, h Home, answers ...[]string) ([]Question, []Command) {
 	t.Helper()
 	var a Answers
 	var asked []Question
@@ -30,7 +30,7 @@ func walk(t *testing.T, h Home, answers ...[]string) ([]Question, Command) {
 		q, done := next(h, a)
 		// End the walk once the dialog asks nothing more
 		if done {
-			return asked, plan(a)
+			return asked, plan(h, a)
 		}
 		// Stop when the dialog asks more than the test answers
 		if len(asked) == len(answers) {
@@ -58,79 +58,79 @@ func TestEveryDialogEndsInItsCommand(t *testing.T) {
 		name    string
 		answers [][]string
 		titles  []string
-		want    Command
+		want    []Command
 	}{
 		{
 			"a new host with a new secret and two sites",
 			[][]string{{"firewall"}, {"add"}, {"example.net"}, {"443,8443"}, {"new"}, {"NEW_TOKEN"}, {"header", "body"}},
 			[]string{"What do you want to do?", "Action", "Host", "Ports", "Secret", "Secret name", "Inject"},
-			Command{Args: []string{"firewall", "add", "example.net", "--port", "443,8443", "--secret", "NEW_TOKEN", "--inject", "header,body"}},
+			[]Command{{Args: []string{"firewall", "add", "example.net", "--port", "443,8443", "--secret", "NEW_TOKEN", "--inject", "header,body"}}},
 		},
 		{
 			"a host without a secret skips where to inject it",
 			[][]string{{"firewall"}, {"add"}, {"example.net"}, {"443"}, {"none"}},
 			[]string{"What do you want to do?", "Action", "Host", "Ports", "Secret"},
-			Command{Args: []string{"firewall", "add", "example.net", "--port", "443"}},
+			[]Command{{Args: []string{"firewall", "add", "example.net", "--port", "443"}}},
 		},
 		{
 			"removing a host the user needs",
 			[][]string{{"firewall"}, {"rm"}, {"example.com"}},
 			[]string{"What do you want to do?", "Action", "Host"},
-			Command{Args: []string{"firewall", "rm", "example.com"}},
+			[]Command{{Args: []string{"firewall", "rm", "example.com"}}},
 		},
 		{
 			"listing the allowlist",
 			[][]string{{"firewall"}, {"ls"}},
 			[]string{"What do you want to do?", "Action"},
-			Command{Args: []string{"firewall", "ls"}},
+			[]Command{{Args: []string{"firewall", "ls"}}},
 		},
 		{
 			"a value for a known secret",
 			[][]string{{"secret"}, {"add"}, {"EXAMPLE_TOKEN"}, {value}},
 			[]string{"What do you want to do?", "Action", "Name", "Value"},
-			Command{Args: []string{"secret", "add", "EXAMPLE_TOKEN"}, Stdin: &value},
+			[]Command{{Args: []string{"secret", "add", "EXAMPLE_TOKEN"}, Stdin: &value}},
 		},
 		{
 			"a value for a secret of another name",
 			[][]string{{"secret"}, {"add"}, {"other"}, {"NEW_TOKEN"}, {value}},
 			[]string{"What do you want to do?", "Action", "Name", "Secret name", "Value"},
-			Command{Args: []string{"secret", "add", "NEW_TOKEN"}, Stdin: &value},
+			[]Command{{Args: []string{"secret", "add", "NEW_TOKEN"}, Stdin: &value}},
 		},
 		{
 			"removing a stored secret",
 			[][]string{{"secret"}, {"rm"}, {"OTHER_TOKEN"}},
 			[]string{"What do you want to do?", "Action", "Name"},
-			Command{Args: []string{"secret", "rm", "OTHER_TOKEN"}},
+			[]Command{{Args: []string{"secret", "rm", "OTHER_TOKEN"}}},
 		},
 		{
 			"adding a store",
 			[][]string{{"store"}, {"add"}, {"registry.example.org/features"}},
 			[]string{"What do you want to do?", "Action", "Store"},
-			Command{Args: []string{"store", "add", "registry.example.org/features"}},
+			[]Command{{Args: []string{"store", "add", "registry.example.org/features"}}},
 		},
 		{
 			"removing a store",
 			[][]string{{"store"}, {"rm"}, {"registry.example.com/features"}},
 			[]string{"What do you want to do?", "Action", "Store"},
-			Command{Args: []string{"store", "rm", "registry.example.com/features"}},
+			[]Command{{Args: []string{"store", "rm", "registry.example.com/features"}}},
 		},
 		{
 			"creating a home",
 			[][]string{{"init"}, {"yes"}},
 			[]string{"What do you want to do?", "Create an o3s home in /home/ubuntu/o3s?"},
-			Command{Args: []string{"init"}},
+			[]Command{{Args: []string{"init"}}},
 		},
 		{
 			"declining to create a home",
 			[][]string{{"init"}, {"no"}},
 			[]string{"What do you want to do?", "Create an o3s home in /home/ubuntu/o3s?"},
-			Command{},
+			nil,
 		},
 		{
 			"updating the home",
 			[][]string{{"update"}},
 			[]string{"What do you want to do?"},
-			Command{Args: []string{"update"}},
+			[]Command{{Args: []string{"update"}}},
 		},
 	}
 	// Walk every dialog
@@ -215,7 +215,7 @@ func TestRmWithNothingToRemoveEndsWithANote(t *testing.T) {
 		_, got := walk(t, Home{Dir: "/home/ubuntu/o3s"}, []string{tt.group}, []string{"rm"})
 
 		// Report a command that differs
-		if diff := cmp.Diff(Command{Note: tt.want}, got); diff != "" {
+		if diff := cmp.Diff([]Command{{Note: tt.want}}, got); diff != "" {
 			t.Errorf("%s rm (-want +got):\n%s", tt.group, diff)
 		}
 	}

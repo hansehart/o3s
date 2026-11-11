@@ -9,12 +9,30 @@ import (
 	"github.com/hansehart/o3s/internal/config"
 )
 
-// Home is what the menu knows about the home it runs in when it starts.
+// Home is what the menu knows about the home it runs in when it starts, and where it asks the stores.
 type Home struct {
-	Dir     string
-	Hosts   []config.Host
-	Secrets []Secret
-	Stores  []string
+	Dir      string
+	Hosts    []config.Host
+	Secrets  []Secret
+	Stores   []string
+	Features []string
+	Lookup   Lookup
+}
+
+// Lookup asks the stores what they offer and works out what a feature changes in the home.
+type Lookup interface {
+	// Features lists the ids of the features a store offers.
+	Features(store string) ([]string, error)
+	// Add shows what adding a feature brings.
+	Add(id string) (Preview, error)
+	// Remove shows what leaves with a feature.
+	Remove(pkg string) (Preview, error)
+}
+
+// Preview is the lines that show a change before it applies, and the secrets it waits for.
+type Preview struct {
+	Lines   []string
+	Waiting []string
 }
 
 // Secret is a secret the home knows, and whether it holds a value.
@@ -46,6 +64,7 @@ type Question struct {
 	Title   string
 	Options []Option
 	Default []string
+	Preview []string
 }
 
 // Option is one choice of a question, with a note shown beside it.
@@ -112,7 +131,7 @@ const (
 func next(h Home, a Answers) (Question, bool) {
 	// Ask what to do first
 	if !a.has("do") {
-		return choose("do", "What do you want to do?", "init", "firewall", "secret", "store", "update"), false
+		return choose("do", "What do you want to do?", "init", "firewall", "secret", "store", "feature", "update"), false
 	}
 	do := a.get("do")
 	// Ask for the confirmation a new home needs
@@ -138,6 +157,8 @@ func next(h Home, a Answers) (Question, bool) {
 		return firewall(h, a, action)
 	case "secret":
 		return secret(h, a, action)
+	case "feature":
+		return feature(h, a, action)
 	default:
 		return store(h, a, action)
 	}
@@ -225,30 +246,32 @@ func store(h Home, a Answers, action string) (Question, bool) {
 	return ask(a, Question{Key: "store", Kind: Input, Title: "Store"})
 }
 
-// plan builds the command line the answers lead to.
-func plan(a Answers) Command {
+// plan builds the command lines the answers lead to, in the order they run.
+func plan(h Home, a Answers) []Command {
 	do, action := a.get("do"), a.get("action")
-	// Build the command of the dialog
+	// Build the commands of the dialog
 	switch {
 	case do == "init":
 		// Leave when the user declines
 		if a.get("init") != yes {
-			return Command{}
+			return nil
 		}
-		return Command{Args: []string{"init"}}
+		return []Command{{Args: []string{"init"}}}
 	case do == "update":
-		return Command{Args: []string{"update"}}
+		return []Command{{Args: []string{"update"}}}
 	case action == "ls":
-		return Command{Args: []string{do, "ls"}}
+		return []Command{{Args: []string{do, "ls"}}}
+	case do == "feature":
+		return featurePlan(h, a, action)
 	case action == "rm":
-		return remove(a, do)
+		return []Command{remove(a, do)}
 	case do == "firewall":
 		args := []string{"firewall", "add", a.get("host"), "--port", a.get("ports")}
 		// Name the secret and where it goes
 		if s := firewallSecret(a); s != "" {
 			args = append(args, "--secret", s, "--inject", strings.Join(a.all("inject"), ","))
 		}
-		return Command{Args: args}
+		return []Command{{Args: args}}
 	case do == "secret":
 		name := a.get("name")
 		// Take the name the user typed for another secret
@@ -256,10 +279,118 @@ func plan(a Answers) Command {
 			name = a.get("secretName")
 		}
 		value := a.get("value")
-		return Command{Args: []string{"secret", "add", name}, Stdin: &value}
+		return []Command{{Args: []string{"secret", "add", name}, Stdin: &value}}
 	default:
-		return Command{Args: []string{"store", "add", a.get("store")}}
+		return []Command{{Args: []string{"store", "add", a.get("store")}}}
 	}
+}
+
+// feature asks what adding or removing a feature needs, showing the change before it applies.
+func feature(h Home, a Answers, action string) (Question, bool) {
+	// Ask which installed feature to remove, and confirm what leaves with it
+	if action == "rm" {
+		// Ask for the feature first
+		if q, done := pick(a, "feature", "Feature", h.Features); !done || !a.has("feature") {
+			return q, done
+		}
+		pv, err := h.Lookup.Remove(a.get("feature"))
+		// End the dialog where the change stays unknown
+		if err != nil {
+			return Question{}, true
+		}
+		return ask(a, apply(pv))
+	}
+	// End the dialog where no store is there to choose
+	if len(h.Stores) == 0 {
+		return Question{}, true
+	}
+	// Ask which store to take a feature from
+	if !a.has("store") {
+		return choose("store", "Store", h.Stores...), false
+	}
+	ids, err := h.Lookup.Features(a.get("store"))
+	// End the dialog where the store stays out of reach
+	if err != nil {
+		return Question{}, true
+	}
+	// Ask which of the store's features to add
+	if !a.has("feature") {
+		return choose("feature", "Feature", ids...), false
+	}
+	pv, err := h.Lookup.Add(a.get("store") + "/" + a.get("feature"))
+	// End the dialog where the change stays unknown
+	if err != nil {
+		return Question{}, true
+	}
+	// Confirm what the feature brings
+	if !a.has("apply") {
+		return apply(pv), false
+	}
+	// End the dialog where the user declines
+	if a.get("apply") != yes {
+		return Question{}, true
+	}
+	// Ask for the value of every secret the feature waits for
+	for _, name := range pv.Waiting {
+		// Ask for a value not yet given
+		if !a.has("value:" + name) {
+			return Question{Key: "value:" + name, Kind: Hidden, Title: "Value for " + name + " (empty to skip)"}, false
+		}
+	}
+	return Question{}, true
+}
+
+// featurePlan builds the commands a feature dialog leads to, or the note that explains why it runs none.
+func featurePlan(h Home, a Answers, action string) []Command {
+	// Remove the feature the user confirmed
+	if action == "rm" {
+		// Name that nothing is installed to remove
+		if !a.has("feature") {
+			return []Command{{Note: "No feature to remove"}}
+		}
+		// Name a change that stays unknown
+		if _, err := h.Lookup.Remove(a.get("feature")); err != nil {
+			return []Command{{Note: "⚠ " + err.Error()}}
+		}
+		// Leave when the user declines
+		if a.get("apply") != yes {
+			return nil
+		}
+		return []Command{{Args: []string{"feature", "rm", a.get("feature")}}}
+	}
+	// Name that no store is there to choose
+	if !a.has("store") {
+		return []Command{{Note: "No store to choose from"}}
+	}
+	// Name a store out of reach
+	if _, err := h.Lookup.Features(a.get("store")); err != nil {
+		return []Command{{Note: "⚠ " + err.Error()}}
+	}
+	id := a.get("store") + "/" + a.get("feature")
+	pv, err := h.Lookup.Add(id)
+	// Name a change that stays unknown
+	if err != nil {
+		return []Command{{Note: "⚠ " + err.Error()}}
+	}
+	// Leave when the user declines
+	if a.get("apply") != yes {
+		return nil
+	}
+	var cmds []Command
+	// Store every value the user gave, so the feature finds it in place
+	for _, name := range pv.Waiting {
+		value := a.get("value:" + name)
+		// Leave a skipped secret waiting
+		if value != "" {
+			cmds = append(cmds, Command{Args: []string{"secret", "add", name}, Stdin: &value})
+		}
+	}
+	return append(cmds, Command{Args: []string{"feature", "add", id}})
+}
+
+// apply asks to apply a change, showing it above the question.
+func apply(pv Preview) Question {
+	return Question{Key: "apply", Kind: Confirm, Title: "Apply?", Preview: pv.Lines}
 }
 
 // remove builds the removal a dialog chose, or the note that nothing was there to remove.
