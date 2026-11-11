@@ -148,7 +148,7 @@ func loadSecrets() (string, secrets.Store, error) {
 
 // homeConfig reads the settings of the home the command runs in.
 func homeConfig() (config.Config, error) {
-	dir, err := home()
+	dir, err := workingHome()
 	// Hand back a working folder that stays unknown
 	if err != nil {
 		return config.Config{}, err

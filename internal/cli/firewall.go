@@ -88,7 +88,7 @@ func newFirewallLs() *cobra.Command {
 		Short: "List the hosts",
 		Args:  usage(cobra.NoArgs),
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			dir, err := home()
+			dir, err := workingHome()
 			// Hand back a working folder that stays unknown
 			if err != nil {
 				return err
@@ -122,7 +122,7 @@ func newFirewallLs() *cobra.Command {
 // change loads the home, applies a change to it, saves it when the change succeeds, and restarts
 // the home's stack so the change takes effect.
 func change(cmd *cobra.Command, apply func(*config.Config) error) error {
-	dir, err := home()
+	dir, err := workingHome()
 	// Hand back a working folder that stays unknown
 	if err != nil {
 		return err

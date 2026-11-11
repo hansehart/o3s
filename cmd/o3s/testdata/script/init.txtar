@@ -1,0 +1,37 @@
+# An empty folder becomes a home with the settings of a new home and the stack
+mkdir home
+cd home
+exec o3s init
+stdout '^Wrote '$WORK'/home/o3s.json$'
+stdout '^Wrote '$WORK'/home/.devcontainer/ \([0-9]+ files\)$'
+stdout '^Next steps:$'
+cmp o3s.json $WORK/want.json
+exists .devcontainer/devcontainer.json
+exists .devcontainer/compose.yaml
+exists .devcontainer/lifecycle/initialize.sh
+! exists .devcontainer/compose.dev.yaml
+
+# The new home works with every command
+exec o3s firewall ls
+stdout '^HOST'
+exec o3s secret ls
+stdout '^NAME'
+
+# A second init leaves the home as it was
+! exec o3s init
+stderr 'already belongs to an o3s home'
+cmp o3s.json $WORK/want.json
+
+-- want.json --
+{
+  "$schema": "./.o3s/o3s.schema.json",
+  "stores": [
+    {
+      "id": "ghcr.io/devcontainers/features"
+    },
+    {
+      "id": "ghcr.io/hansehart/devcontainer-features"
+    }
+  ],
+  "hosts": []
+}
