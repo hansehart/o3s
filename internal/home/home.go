@@ -1,4 +1,4 @@
-// Package home makes a folder into an o3s home: its settings beside the stack the binary carries.
+// Package home makes a folder into an o3s home.
 package home
 
 import (
@@ -17,12 +17,10 @@ import (
 // ErrExists marks a folder that already holds a home.
 var ErrExists = errors.New("already belongs to an o3s home")
 
-// stackDir is the folder of the stack inside a home, the one the dev container tooling reads.
+// stackDir is where a home keeps its stack.
 const stackDir = ".devcontainer"
 
-// Init makes a folder into a new home, with the settings of a new home and the stack the binary
-// carries, its config holding no feature. It hands back the paths it wrote, and writes nothing into
-// a folder that already holds a home.
+// Init writes a new home into a folder and hands back the paths it wrote.
 func Init(dir string) ([]string, error) {
 	// Turn away a folder that already holds a home, before anything is written
 	for _, name := range []string{config.File, stackDir} {
@@ -66,8 +64,7 @@ func Init(dir string) ([]string, error) {
 	return written, err
 }
 
-// withoutFeatures empties a devcontainer config's features, keeping its comments and every other
-// setting.
+// withoutFeatures empties a config's features and keeps everything else.
 func withoutFeatures(data []byte) ([]byte, error) {
 	v, err := hujson.Parse(data)
 	// Hand back a config that holds no JSON with comments
