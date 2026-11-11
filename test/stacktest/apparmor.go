@@ -16,8 +16,8 @@ const (
 	installedProfile = "/etc/apparmor.d/" + profileName
 )
 
-// AHostThatLostTheProfile leaves the cage's profile installed but unloaded, as after a reboot. It
-// raises the stack first, so the profile the kernel loses is one the stack loaded.
+// AHostThatLostTheProfile puts the host in the state a reboot leaves, so a test can prove the cage
+// still starts confined.
 func AHostThatLostTheProfile(tb testing.TB) {
 	tb.Helper()
 	raised, err := DevcontainerUp(tb)
