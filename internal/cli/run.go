@@ -31,9 +31,18 @@ func Run(ctx context.Context, args []string, s Streams) int {
 	}
 	fmt.Fprintf(s.Err, "Error: %v\n", err)
 	// Point a usage error at the help of the command it hit
-	if errors.Is(err, ErrUsage) || errors.Is(err, config.ErrInvalid) || errors.Is(err, secrets.ErrInvalid) {
+	if isUsage(err) {
 		fmt.Fprintf(s.Err, "Run '%s --help' for usage.\n", cmd.CommandPath())
 		return 2
 	}
 	return 1
+}
+
+// isUsage reports whether an error comes from the command line rather than from the home's files.
+func isUsage(err error) bool {
+	// Read a broken settings file as a failure of the home, whatever rule it breaks
+	if errors.Is(err, config.ErrMalformed) {
+		return false
+	}
+	return errors.Is(err, ErrUsage) || errors.Is(err, config.ErrInvalid) || errors.Is(err, secrets.ErrInvalid)
 }

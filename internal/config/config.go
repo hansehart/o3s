@@ -21,6 +21,8 @@ const (
 var (
 	// ErrNoHome marks a folder that holds no o3s home.
 	ErrNoHome = errors.New("no o3s home")
+	// ErrMalformed marks a settings file that breaks a rule o3s writes it by.
+	ErrMalformed = errors.New("holds a broken entry")
 	// ErrInvalid marks a change that breaks one of the allowlist's rules.
 	ErrInvalid = errors.New("invalid")
 	// ErrUnknownHost marks a host the allowlist lacks.
@@ -87,7 +89,42 @@ func Load(home string) (Config, error) {
 	if err := dec.Decode(&c); err != nil {
 		return Config{}, fmt.Errorf("read %s: %w", File, err)
 	}
+	// Turn away a file whose entries break the rules o3s writes them by
+	if err := c.check(); err != nil {
+		return Config{}, fmt.Errorf("%s %w, %w", File, ErrMalformed, err)
+	}
 	return c, nil
+}
+
+// check holds every store and host to the rules o3s writes them by, and names the first that breaks one.
+func (c Config) check() error {
+	stores := map[string]bool{}
+	// Check every store
+	for _, s := range c.Stores {
+		// Name a store without an id or listed twice
+		if s.ID == "" || stores[s.ID] {
+			return fmt.Errorf("store %q is empty or listed twice", s.ID)
+		}
+		stores[s.ID] = true
+	}
+	hosts := map[string]bool{}
+	// Check every host
+	for _, h := range c.Hosts {
+		// Name a host that breaks a rule of a single field
+		if err := validate(Change{Name: h.Name, Ports: h.Ports, Secret: h.Secret, Inject: h.Inject}); err != nil {
+			return err
+		}
+		// Name a host whose fields contradict each other
+		if err := validateHost(h); err != nil {
+			return err
+		}
+		// Name a host that opens no port, that nothing needs, or that is listed twice
+		if len(h.Ports) == 0 || len(h.By) == 0 || hosts[h.Name] {
+			return fmt.Errorf("host %s lacks a port or a reason, or is listed twice", h.Name)
+		}
+		hosts[h.Name] = true
+	}
+	return nil
 }
 
 // Save writes the settings in one stable shape and replaces the file in a single step.
