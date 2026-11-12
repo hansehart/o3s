@@ -25,11 +25,11 @@ func aCLI(t *testing.T, dir string) string {
 	return log
 }
 
-// The CLI the installer put in its folder rebuilds the home's cage the way the editor's rebuild does.
+// The CLI o3s installed in its data folder rebuilds the home's cage the way the editor's rebuild does.
 func TestRunRebuildsTheCage(t *testing.T) {
-	prefix := t.TempDir()
-	log := aCLI(t, filepath.Join(prefix, "bin"))
-	t.Setenv("DEVCONTAINERS_INSTALL_DIR", prefix)
+	data := t.TempDir()
+	log := aCLI(t, filepath.Join(data, "o3s", "devcontainers", "bin"))
+	t.Setenv("XDG_DATA_HOME", data)
 	t.Setenv("PATH", t.TempDir())
 	cli, ok := rebuild.CLI()
 	// Stop when the CLI stays unfound
@@ -55,9 +55,9 @@ func TestRunRebuildsTheCage(t *testing.T) {
 	}
 }
 
-// A CLI on PATH serves where the installer's folder holds none, and a host without either reports none.
+// A CLI on PATH serves where o3s's data folder holds none, and a host without either reports none.
 func TestCLIFindsTheCLIOnPath(t *testing.T) {
-	t.Setenv("DEVCONTAINERS_INSTALL_DIR", t.TempDir())
+	t.Setenv("XDG_DATA_HOME", t.TempDir())
 	bin := t.TempDir()
 	aCLI(t, bin)
 	t.Setenv("PATH", bin)

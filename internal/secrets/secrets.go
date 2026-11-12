@@ -12,6 +12,7 @@ import (
 
 	"github.com/hansehart/o3s/internal/atomicfile"
 	"github.com/hansehart/o3s/internal/config"
+	"github.com/hansehart/o3s/internal/paths"
 )
 
 // File is the name of the secrets file.
@@ -35,12 +36,7 @@ func Path() (string, error) {
 	if dir := os.Getenv("O3S_SECRETS_DIR"); dir != "" {
 		return filepath.Join(dir, File), nil
 	}
-	home, err := os.UserHomeDir()
-	// Hand back a home folder that stays unknown
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(home, ".config", "o3s", File), nil
+	return filepath.Join(paths.Config(), File), nil
 }
 
 // Load reads a secrets file, and hands back an empty store for a file that is yet to exist.

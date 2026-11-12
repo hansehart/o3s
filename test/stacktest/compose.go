@@ -58,7 +58,7 @@ func Up(tb testing.TB, services ...string) error {
 	return err
 }
 
-// anEnv writes the values the start hook generates when the checkout lacks them.
+// anEnv writes the values and folders the start hook generates when the checkout lacks them.
 func anEnv(tb testing.TB) {
 	tb.Helper()
 	env := filepath.Join(Repo(tb), ".devcontainer/.env")
@@ -66,7 +66,8 @@ func anEnv(tb testing.TB) {
 	if _, err := os.Stat(env); err == nil {
 		return
 	}
-	values := fmt.Sprintf("O3S_MARKER=o3s-stacktest\nO3S_UID=%d\nO3S_GID=%d\n", os.Getuid(), os.Getgid())
+	values := fmt.Sprintf("O3S_MARKER=o3s-stacktest\nO3S_UID=%d\nO3S_GID=%d\nO3S_PROXY_DIR=%s\nO3S_SECRETS_DIR=%s\nO3S_SOCKET_DIR=%s\n",
+		os.Getuid(), os.Getgid(), tb.TempDir(), tb.TempDir(), tb.TempDir())
 	// Stop when writing the values fails
 	if err := os.WriteFile(env, []byte(values), 0o644); err != nil {
 		tb.Fatalf("Setup: write %s: %v", env, err)

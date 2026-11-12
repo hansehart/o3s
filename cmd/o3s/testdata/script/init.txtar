@@ -4,8 +4,9 @@ cd home
 exec o3s init
 stdout '^Wrote '$WORK'/home/o3s.json$'
 stdout '^Wrote '$WORK'/home/.devcontainer/ \([0-9]+ files\)$'
-stdout '^Wrote '$WORK'/home/.devcontainer/o3s.code-workspace$'
-stdout '^Made the proxy''s CA in '$WORK'/.config/o3s$'
+stdout '^Wrote '$WORK'/home/home.code-workspace$'
+stdout '^Made the proxy''s CA in '$WORK'/.local/state/o3s/proxy$'
+stdout '^  code '$WORK'/home/home.code-workspace +open it, then reopen in the container$'
 stdout '^Next steps:$'
 cmp o3s.json $WORK/want.json
 exists .devcontainer/devcontainer.json
@@ -14,8 +15,14 @@ exists .devcontainer/lifecycle/post-start.sh
 ! exists .devcontainer/compose.dev.yaml
 ! exists .devcontainer/lifecycle/initialize.sh
 exists .devcontainer/.env
-exists $WORK/.config/o3s/mitmproxy-ca.crt
+grep '^O3S_PROXY_DIR='$WORK'/.local/state/o3s/proxy$' .devcontainer/.env
+grep '^O3S_SECRETS_DIR='$WORK'/.config/o3s$' .devcontainer/.env
+grep '^O3S_SOCKET_DIR='$WORK'/.local/state/o3s/[0-9a-f]{12}/docker-host$' .devcontainer/.env
+exists $WORK/.local/state/o3s/proxy/mitmproxy-ca.crt
+! exists $WORK/.config/o3s/mitmproxy-ca.crt
 exists $WORK/.config/o3s/secrets.env
+exec sh -c 'grep -q "\"path\": \"$WORK/home\"" "$WORK"/.local/state/o3s/*/home.json'
+exec sh -c 'test -d "$WORK"/.local/state/o3s/*/docker-host'
 grep '"initializeCommand": "o3s init"' .devcontainer/devcontainer.json
 
 # The new home works with every command
@@ -25,13 +32,13 @@ exec o3s secret ls
 stdout '^NAME'
 
 # Every start prepares the host again and keeps the home and its CA as they are
-cp $WORK/.config/o3s/mitmproxy-ca.pem $WORK/ca.pem
+cp $WORK/.local/state/o3s/proxy/mitmproxy-ca.pem $WORK/ca.pem
 cp .devcontainer/.env $WORK/env
 exec o3s init
 ! stdout 'Wrote|Next steps|differs'
-stdout '^The proxy''s CA is ready in '$WORK'/.config/o3s$'
+stdout '^The proxy''s CA is ready in '$WORK'/.local/state/o3s/proxy$'
 cmp o3s.json $WORK/want.json
-cmp $WORK/.config/o3s/mitmproxy-ca.pem $WORK/ca.pem
+cmp $WORK/.local/state/o3s/proxy/mitmproxy-ca.pem $WORK/ca.pem
 cmp .devcontainer/.env $WORK/env
 
 # A home that lost its settings gets those of a new home back

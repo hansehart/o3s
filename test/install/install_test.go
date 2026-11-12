@@ -229,3 +229,24 @@ func TestTheSignerWorkflowExists(t *testing.T) {
 		t.Errorf("signer %s: %v", m[1], err)
 	}
 }
+
+// A devcontainer CLI o3s installed before is kept, so a second install downloads nothing for it.
+func TestInstallKeepsTheDevcontainerCLIItInstalled(t *testing.T) {
+	h := aHost(t, "Linux", "x86_64", map[string]string{})
+	bin := filepath.Join(h.home, ".local", "share", "o3s", "devcontainers", "bin")
+	// Stop when the installed CLI stays unwritten
+	if err := os.MkdirAll(bin, 0o750); err != nil {
+		t.Fatalf("Setup: %v", err)
+	}
+	// Stop when the installed CLI stays unwritten
+	if err := os.WriteFile(filepath.Join(bin, "devcontainer"), []byte("#!/bin/sh\n"), 0o755); err != nil {
+		t.Fatalf("Setup: %v", err)
+	}
+
+	out, err := h.run(t, aRelease(t, false))
+
+	// Require the install to keep the CLI, though the host lacks what a fresh install of it needs
+	if err != nil || !strings.Contains(out, "Found the devcontainer CLI in "+filepath.Dir(bin)) {
+		t.Errorf("install.sh with the CLI in place = %v, want it kept\n%s", err, out)
+	}
+}

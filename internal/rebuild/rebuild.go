@@ -7,22 +7,15 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+
+	"github.com/hansehart/o3s/internal/paths"
 )
 
-// CLI finds the devcontainer CLI in the folder its installer uses, or on PATH, and reports whether the host holds one.
+// CLI finds o3s's own devcontainer CLI, or one on PATH, and reports whether the host holds one.
 func CLI() (string, bool) {
-	prefix := os.Getenv("DEVCONTAINERS_INSTALL_DIR")
-	// Look in the installer's default folder where the environment names none
-	if prefix == "" {
-		home, err := os.UserHomeDir()
-		// Look on PATH alone where the home folder stays unknown
-		if err == nil {
-			prefix = filepath.Join(home, ".devcontainers")
-		}
-	}
-	installed := filepath.Join(prefix, "bin", "devcontainer")
-	// Take the CLI the installer put in place
-	if info, err := os.Stat(installed); prefix != "" && err == nil && info.Mode()&0o111 != 0 { //nolint:gosec // the folder is the user's own, as their installer reads it
+	installed := filepath.Join(paths.Devcontainers(), "bin", "devcontainer")
+	// Take the CLI o3s installed
+	if info, err := os.Stat(installed); err == nil && info.Mode()&0o111 != 0 {
 		return installed, true
 	}
 	path, err := exec.LookPath("devcontainer")

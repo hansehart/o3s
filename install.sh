@@ -9,12 +9,13 @@
 # DESCRIPTION
 #        Downloads the o3s binary of a release for this host, checks it against the release's
 #        checksums, verifies its build attestation where gh is logged in, and installs it to
-#        ~/.local/bin. Then installs the devcontainer CLI, with its own Node, into ~/.devcontainers.
+#        ~/.local/bin. Then installs the devcontainer CLI o3s rebuilds the cage with, with its own
+#        Node, into ~/.local/share/o3s/devcontainers.
 #
 # ENVIRONMENT
 #        O3S_INSTALL_DIR             where the binary goes (default: ~/.local/bin)
 #        O3S_RELEASE_URL             where the release's files come from (default: GitHub releases)
-#        DEVCONTAINERS_INSTALL_DIR   where the devcontainer CLI goes (default: ~/.devcontainers)
+#        XDG_DATA_HOME               the data folder o3s keeps its devcontainer CLI in (default: ~/.local/share)
 set -eu
 
 repo="hansehart/o3s"
@@ -87,7 +88,12 @@ aarch64 | arm64) arch="arm64" ;;
 esac
 asset="o3s-linux-${arch}"
 
-prefix="${DEVCONTAINERS_INSTALL_DIR:-${HOME}/.devcontainers}"
+data="${HOME}/.local/share"
+# Follow the data folder the environment names, where it is absolute as the XDG spec asks
+case "${XDG_DATA_HOME:-}" in
+/*) data="${XDG_DATA_HOME}" ;;
+esac
+prefix="${data}/o3s/devcontainers"
 # Name the tools the devcontainer CLI's installer unpacks Node with, before anything installs
 if [ "${devcontainer}" = "yes" ] && [ ! -x "${prefix}/bin/devcontainer" ]; then
 	# Check each tool in turn
@@ -151,7 +157,7 @@ if [ "${devcontainer}" = "yes" ]; then
 			die "failed to download the devcontainer CLI's installer"
 		printf '%s  devcontainers.sh\n' "${devcontainers_installer_sha256}" >"${tmp}/devcontainers.sha256"
 		check_sums "${tmp}" "devcontainers.sha256" || die "the devcontainer CLI's installer differs from its pinned checksum"
-		DEVCONTAINERS_INSTALL_DIR="${prefix}" sh "${tmp}/devcontainers.sh" --version "${devcontainers_version}"
+		sh "${tmp}/devcontainers.sh" --prefix "${prefix}" --version "${devcontainers_version}"
 	fi
 fi
 

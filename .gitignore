@@ -1,7 +1,7 @@
 .devcontainer/.env
 /o3s.json
 .devcontainer/devcontainer-lock.json
-.devcontainer/o3s.code-workspace
+/*.code-workspace
 *.crt
 *.key
 /.github/tools/node_modules/
