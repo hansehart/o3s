@@ -15,13 +15,16 @@ import (
 	"github.com/hansehart/o3s/internal/release"
 )
 
-// binary stands in for the o3s binary of release 0.8.0.
-const binary = "#!/bin/sh\necho o3s version 0.8.0\n"
+// latest is the release the releases page offers as the newest.
+const latest = "0.8.0"
+
+// binary stands in for the o3s binary of the latest release.
+const binary = "#!/bin/sh\necho o3s version " + latest + "\n"
 
 // asset is the name the release gives this host's binary.
 var asset = "o3s-linux-" + runtime.GOARCH
 
-// aRelease serves a releases page whose latest release is 0.8.0, with checksums that match its binary unless tampered.
+// aRelease serves a releases page whose newest is the latest release, with checksums that match its binary unless tampered.
 func aRelease(t *testing.T, tampered bool) {
 	t.Helper()
 	sum := sha256.Sum256([]byte(binary))
@@ -32,12 +35,12 @@ func aRelease(t *testing.T, tampered bool) {
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /latest", func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, "/tag/v0.8.0", http.StatusFound)
+		http.Redirect(w, r, "/tag/v"+latest, http.StatusFound)
 	})
-	mux.HandleFunc("GET /download/v0.8.0/"+asset, func(w http.ResponseWriter, _ *http.Request) {
+	mux.HandleFunc("GET /download/v"+latest+"/"+asset, func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte(binary))
 	})
-	mux.HandleFunc("GET /download/v0.8.0/checksums.txt", func(w http.ResponseWriter, _ *http.Request) {
+	mux.HandleFunc("GET /download/v"+latest+"/checksums.txt", func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte(digest + "  " + asset + "\n" + strings.Repeat("1", 64) + "  install.sh\n"))
 	})
 	s := httptest.NewServer(mux)
@@ -52,8 +55,8 @@ func TestLatestReadsTheRedirect(t *testing.T) {
 	got, err := release.Latest(t.Context())
 
 	// Report a version that differs
-	if err != nil || got != "0.8.0" {
-		t.Errorf("Latest() = %q, %v, want 0.8.0", got, err)
+	if err != nil || got != latest {
+		t.Errorf("Latest() = %q, %v, want %s", got, err, latest)
 	}
 }
 
@@ -61,7 +64,7 @@ func TestLatestReadsTheRedirect(t *testing.T) {
 func TestFetchKeepsAMatchingBinary(t *testing.T) {
 	aRelease(t, false)
 
-	path, err := release.Fetch(t.Context(), "0.8.0", t.TempDir())
+	path, err := release.Fetch(t.Context(), latest, t.TempDir())
 
 	// Stop when the download fails
 	if err != nil {
@@ -78,7 +81,7 @@ func TestFetchKeepsAMatchingBinary(t *testing.T) {
 func TestFetchTurnsAwayATamperedBinary(t *testing.T) {
 	aRelease(t, true)
 
-	_, err := release.Fetch(t.Context(), "0.8.0", t.TempDir())
+	_, err := release.Fetch(t.Context(), latest, t.TempDir())
 
 	// Require the error that names a checksum mismatch
 	if !errors.Is(err, release.ErrChecksum) {
