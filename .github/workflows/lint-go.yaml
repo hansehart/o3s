@@ -30,7 +30,7 @@ jobs:
   goreleaser-check:
     runs-on: ubuntu-latest
     steps:
-      # check out the release config
+      # check out the release config and the installer it publishes
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -40,3 +40,7 @@ jobs:
         with:
           version: v2.20.1
           args: check
+
+      # check the installer with the shellcheck the runner image ships
+      - name: Check the installer
+        run: shellcheck install.sh
