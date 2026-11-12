@@ -12,6 +12,7 @@ func newRoot(s Streams) *cobra.Command {
 	root := &cobra.Command{
 		Use:           "o3s",
 		Short:         "Set up the cage an o3s home runs",
+		Version:       version(),
 		Args:          usage(cobra.NoArgs),
 		SilenceErrors: true,
 		SilenceUsage:  true,

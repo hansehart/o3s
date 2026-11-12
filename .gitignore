@@ -5,3 +5,4 @@
 *.crt
 *.key
 /.github/tools/node_modules/
+/dist/

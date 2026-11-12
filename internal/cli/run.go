@@ -8,6 +8,7 @@ import (
 	"io"
 
 	"github.com/hansehart/o3s/internal/config"
+	"github.com/hansehart/o3s/internal/home"
 	"github.com/hansehart/o3s/internal/registry"
 	"github.com/hansehart/o3s/internal/secrets"
 )
@@ -23,6 +24,7 @@ type Streams struct {
 
 // Run executes a command line and returns 0, 2 for a usage error, or 1 for any other failure.
 func Run(ctx context.Context, args []string, s Streams) int {
+	home.Version = version()
 	// Lead a user at a terminal through the menu when no command is named
 	if len(args) == 0 && isInteractive(s.In, s.Out) {
 		return runMenu(ctx, s)
