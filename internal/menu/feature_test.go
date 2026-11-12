@@ -51,8 +51,8 @@ func TestFeatureDialogsEndInTheirCommands(t *testing.T) {
 			[][]string{{"feature"}, {"add"}, {"registry.example.com/features"}, {"tool"}, {"yes"}, {value}, {""}},
 			[]string{"What do you want to do?", "Action", "Store", "Feature", "Apply?", "Value for EXAMPLE_TOKEN (empty to skip)", "Value for OTHER_TOKEN (empty to skip)"},
 			[]Command{
-				{Args: []string{"secret", "add", "EXAMPLE_TOKEN"}, Stdin: &value},
-				{Args: []string{"feature", "add", "registry.example.com/features/tool"}},
+				{Args: []string{"secret", "add", "EXAMPLE_TOKEN", "--no-bind-hint"}, Stdin: &value},
+				{Args: []string{"feature", "add", "registry.example.com/features/tool", "--no-preview"}},
 			},
 		},
 		{
@@ -71,7 +71,7 @@ func TestFeatureDialogsEndInTheirCommands(t *testing.T) {
 			"removing a feature",
 			[][]string{{"feature"}, {"rm"}, {"registry.example.com/features/tool"}, {"yes"}},
 			[]string{"What do you want to do?", "Action", "Feature", "Apply?"},
-			[]Command{{Args: []string{"feature", "rm", "registry.example.com/features/tool"}}},
+			[]Command{{Args: []string{"feature", "rm", "registry.example.com/features/tool", "--no-preview"}}},
 		},
 		{
 			"listing the features",

@@ -6,6 +6,12 @@ cmpenv stdout removed.txt
 cmp .devcontainer/devcontainer.json want.jsonc
 cmp o3s.json want.json
 
+# A feature the menu previewed already prints its removal without the preview
+exec o3s feature add $REGISTRY/features/tool
+exec o3s feature rm $REGISTRY/features/tool --no-preview
+! stdout '^  - '
+stdout '^Removed '${REGISTRY@R}'/features/tool$'
+
 # A feature the config lacks is turned away
 ! exec o3s feature rm $REGISTRY/features/tool
 stderr 'unknown feature .*/features/tool'
