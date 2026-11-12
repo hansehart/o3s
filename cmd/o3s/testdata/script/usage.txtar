@@ -26,3 +26,9 @@ cd empty
 ! exec o3s firewall ls
 stderr 'no o3s home'
 stderr 'o3s init'
+
+# The flags the menu passes stay out of the help
+exec o3s feature add --help
+! stdout 'no-preview'
+exec o3s secret add --help
+! stdout 'no-bind-hint'

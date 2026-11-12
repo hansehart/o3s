@@ -21,6 +21,13 @@ stdout '^'${REGISTRY@R}'/features/go:1$'
 stdout '^Rebuild the cage to install it$'
 ! exists docker.log
 
+# A feature the menu previewed already prints what it did without the preview, its warnings kept
+exec o3s feature rm $REGISTRY/features/tool
+exec o3s feature add $REGISTRY/features/tool --no-preview
+! stdout '^  \+ '
+stdout '^Added '${REGISTRY@R}'/features/tool$'
+stdout '^⚠ EXAMPLE_TOKEN waits for its value'
+
 # A feature the store lacks is turned away
 ! exec o3s feature add $REGISTRY/features/absent
 stderr 'unknown feature .*/features/absent'
