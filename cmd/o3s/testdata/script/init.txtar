@@ -1,3 +1,10 @@
+# The user's own home folder holds the host's secrets and CA, which the cage would see, so it is turned away
+cd $WORK
+! exec o3s init
+stderr 'needs a folder of its own'
+! exists $WORK/o3s.json
+! exists $WORK/.devcontainer
+
 # An empty folder becomes a home with the settings of a new home, the stack, and a prepared host
 mkdir home
 cd home

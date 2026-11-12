@@ -212,3 +212,16 @@ func SeedSecrets(path string) (bool, error) {
 	}
 	return true, atomicfile.Write(path, data, 0o600)
 }
+
+// Holds reports the first of the host's folders a home would hold, which the cage would then see.
+func Holds(dir string, folders ...string) (string, bool) {
+	// Look at every folder of the host
+	for _, f := range folders {
+		rel, err := filepath.Rel(dir, f)
+		// Name a folder at or below the home
+		if err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			return f, true
+		}
+	}
+	return "", false
+}
