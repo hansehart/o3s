@@ -33,13 +33,17 @@ archives:
     name_template: "o3s-{{ .Os }}-{{ .Arch }}"
 
 checksum:
-  # One file of checksums the installer checks a download against
+  # One file of checksums the installer checks a download against, the installer's own included
   name_template: checksums.txt
+  extra_files:
+    - glob: ./install.sh
 
 changelog:
   # Leave the notes to release-please
   disable: true
 
 release:
-  # Attach the binaries to the release release-please created, keeping its notes
+  # Attach the binaries and the installer to the release release-please created, keeping its notes
   mode: keep-existing
+  extra_files:
+    - glob: ./install.sh
