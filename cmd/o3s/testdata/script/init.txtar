@@ -20,7 +20,6 @@ exists .devcontainer/devcontainer.json
 exists .devcontainer/compose.yaml
 exists .devcontainer/lifecycle/post-start.sh
 ! exists .devcontainer/compose.dev.yaml
-! exists .devcontainer/lifecycle/initialize.sh
 exists .devcontainer/.env
 grep '^O3S_PROXY_DIR='$WORK'/.local/state/o3s/proxy$' .devcontainer/.env
 grep '^O3S_SECRETS_DIR='$WORK'/.config/o3s$' .devcontainer/.env

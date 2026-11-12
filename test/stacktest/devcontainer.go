@@ -40,9 +40,9 @@ func ContainerExec(tb testing.TB, id string, command ...string) (string, error) 
 }
 
 const (
-	// composeLine is the daily config's pointer to its stack, which the dev config rewrites.
+	// composeLine is the shipped config's pointer to its stack, which the dev config rewrites.
 	composeLine = `"dockerComposeFile": "compose.yaml"`
-	// hookLine is the daily config's start hook, which the dev config points at o3s built from this branch.
+	// hookLine is the shipped config's start hook, which the dev config points at o3s built from this branch.
 	hookLine = `"initializeCommand": "o3s init"`
 )
 
@@ -57,22 +57,22 @@ func devConfig(tb testing.TB) string {
 		return path.(string)
 	}
 	dir := filepath.Join(Repo(tb), ".devcontainer")
-	daily, err := os.ReadFile(filepath.Join(dir, "devcontainer.json"))
-	// Stop when the daily config stays unread
+	shipped, err := os.ReadFile(filepath.Join(dir, "devcontainer.json"))
+	// Stop when the shipped config stays unread
 	if err != nil {
-		tb.Fatalf("Setup: read the daily config: %v", err)
+		tb.Fatalf("Setup: read the shipped config: %v", err)
 	}
-	// Stop when the daily config points at its stack another way
-	if !strings.Contains(string(daily), composeLine) {
-		tb.Fatalf("Setup: the daily config lacks %s", composeLine)
+	// Stop when the shipped config points at its stack another way
+	if !strings.Contains(string(shipped), composeLine) {
+		tb.Fatalf("Setup: the shipped config lacks %s", composeLine)
 	}
-	// Stop when the daily config starts the stack another way
-	if !strings.Contains(string(daily), hookLine) {
-		tb.Fatalf("Setup: the daily config lacks %s", hookLine)
+	// Stop when the shipped config starts the stack another way
+	if !strings.Contains(string(shipped), hookLine) {
+		tb.Fatalf("Setup: the shipped config lacks %s", hookLine)
 	}
 	dev := fmt.Sprintf(`"dockerComposeFile": [%q, %q]`, filepath.Join(dir, "compose.yaml"), filepath.Join(dir, "compose.dev.yaml"))
 	hook := fmt.Sprintf(`"initializeCommand": [%q, "init"]`, o3sBinary(tb))
-	config := strings.Replace(strings.Replace(string(daily), composeLine, dev, 1), hookLine, hook, 1)
+	config := strings.Replace(strings.Replace(string(shipped), composeLine, dev, 1), hookLine, hook, 1)
 	path := filepath.Join(tb.TempDir(), "devcontainer.json")
 	// Stop when the dev config stays unwritten
 	if err := os.WriteFile(path, []byte(config), 0o644); err != nil {
