@@ -39,18 +39,13 @@ func newCageIDE() *cobra.Command {
 			if err != nil {
 				return errors.New("o3s cage ide runs the VS Code CLI code, put it on PATH (VS Code: Shell Command: Install 'code' command in PATH)")
 			}
-			// Check that VS Code runs Docker inside WSL, where o3s runs
-			if distro, ok := ide.WSL(); ok {
-				settings, _ := ide.SettingsPath(cmd.Context())
-				// Name the lines VS Code's settings need
-				if !ide.ExecutesInWSL(settings) {
-					return fmt.Errorf("VS Code runs Docker inside WSL with these lines in its settings.json:\n"+
-						"  \"dev.containers.executeInWSL\": true,\n"+
-						"  \"dev.containers.executeInWSLDistro\": %q", distro)
-				}
+			env := ide.Detect()
+			// Hand back what VS Code needs before it opens the cage
+			if err := env.Check(cmd.Context()); err != nil {
+				return err
 			}
-			host, err := ide.HostPath(cmd.Context(), dir)
-			// Hand back a folder WSL fails to name
+			host, err := env.HostPath(cmd.Context(), dir)
+			// Hand back a folder the environment fails to name
 			if err != nil {
 				return err
 			}
