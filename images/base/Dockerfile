@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       vim \
   && rm -rf /var/lib/apt/lists/*
 
-# TOML/YAML parser
+# JSON parser for the policy
 COPY --from=mikefarah/yq:4.54.3@sha256:7834187596ad56fd5a81436114e0b0b9dd54c91bb43946d1f7145b2be5f9c3d2 /usr/bin/yq /usr/local/bin/yq
 
 # Load the markers into every interactive shell

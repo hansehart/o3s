@@ -9,7 +9,8 @@
 #        host's secrets into the hosts that declare one.
 #
 # USAGE
-#        Dev Containers extension, command "Dev Containers: Rebuild and Reopen in Container".
+#        o3s init writes this file into a home, and the editor raises it when it opens the
+#        home's workspace in the container. o3s update rebuilds it.
 #
 # SEE ALSO
 #        apparmor.conf, devcontainer.json, o3s.json
@@ -33,7 +34,7 @@ services:
       GATEWAY_IP: *gateway_ip
     env_file: .env
     volumes:
-      # Host mount for dynamic changes
+      # The home, read-only, with its policy and the stack's scripts
       - ../:/home/ubuntu/o3s:ro
       # Persistent state for installed features
       - features:/home/ubuntu/features
