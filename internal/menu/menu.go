@@ -131,7 +131,7 @@ const (
 func next(h Home, a Answers) (Question, bool) {
 	// Ask what to do first
 	if !a.has("do") {
-		return choose("do", "What do you want to do?", "init", "firewall", "secret", "store", "feature", "update"), false
+		return choose("do", "What do you want to do?", "init", "firewall", "secret", "store", "feature", "cage", "update"), false
 	}
 	do := a.get("do")
 	// Ask for the confirmation a new home needs
@@ -141,6 +141,10 @@ func next(h Home, a Answers) (Question, bool) {
 	// Run the update without a further question
 	if do == "update" {
 		return Question{}, true
+	}
+	// Ask whether the cage opens in the editor or in a shell, then run it
+	if do == "cage" {
+		return ask(a, choose("action", "Action", "ide", "shell"))
 	}
 	// Ask which action of the group comes next
 	if !a.has("action") {
@@ -259,6 +263,8 @@ func plan(h Home, a Answers) []Command {
 		return []Command{{Args: []string{"init"}}}
 	case do == "update":
 		return []Command{{Args: []string{"update"}}}
+	case do == "cage":
+		return []Command{{Args: []string{"cage", action}}}
 	case action == "ls":
 		return []Command{{Args: []string{do, "ls"}}}
 	case do == "feature":

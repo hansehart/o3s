@@ -132,6 +132,18 @@ func TestEveryDialogEndsInItsCommand(t *testing.T) {
 			[]string{"What do you want to do?"},
 			[]Command{{Args: []string{"update"}}},
 		},
+		{
+			"opening the cage in VS Code",
+			[][]string{{"cage"}, {"ide"}},
+			[]string{"What do you want to do?", "Action"},
+			[]Command{{Args: []string{"cage", "ide"}}},
+		},
+		{
+			"opening a shell in the cage",
+			[][]string{{"cage"}, {"shell"}},
+			[]string{"What do you want to do?", "Action"},
+			[]Command{{Args: []string{"cage", "shell"}}},
+		},
 	}
 	// Walk every dialog
 	for _, tt := range tests {
@@ -218,5 +230,16 @@ func TestRmWithNothingToRemoveEndsWithANote(t *testing.T) {
 		if diff := cmp.Diff([]Command{{Note: tt.want}}, got); diff != "" {
 			t.Errorf("%s rm (-want +got):\n%s", tt.group, diff)
 		}
+	}
+}
+
+// The cage offers its own actions, the editor and the shell.
+func TestCageOffersTheEditorAndTheShell(t *testing.T) {
+	q, _ := next(aHome, Answers{}.With("do", []string{"cage"}))
+
+	want := []Option{{Value: "ide"}, {Value: "shell"}}
+	// Report actions that differ
+	if diff := cmp.Diff(want, q.Options); diff != "" {
+		t.Errorf("cage actions (-want +got):\n%s", diff)
 	}
 }
