@@ -16,6 +16,7 @@ import (
 
 // Plan is everything an update changes in a home, and what it leaves for want of a store.
 type Plan struct {
+	Images   []home.ImageChange
 	Files    []home.FileChange
 	Features []FeatureChange
 	Warnings []string
@@ -51,6 +52,11 @@ func Check(ctx context.Context, dir string) (Plan, error) {
 	if err != nil {
 		return Plan{}, err
 	}
+	images, err := home.Images(dir)
+	// Hand back images whose tags fail to compare
+	if err != nil {
+		return Plan{}, err
+	}
 	c, err := config.Load(dir)
 	// Hand back settings that fail to load
 	if err != nil {
@@ -61,7 +67,7 @@ func Check(ctx context.Context, dir string) (Plan, error) {
 	if err != nil {
 		return Plan{}, err
 	}
-	p := Plan{Files: files}
+	p := Plan{Images: images, Files: files}
 	var r registry.Resolver
 	// Check every feature a store offers
 	for _, key := range dc.Features() {

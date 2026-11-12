@@ -1,6 +1,7 @@
-# A new home already holds what the binary and its stores ship
+# A new home already holds what the binary and its stores ship, and a dev build leaves itself alone
 exec o3s init
 exec o3s update
+stdout '^o3s dev builds update with go install or install\.sh$'
 stdout '^Up to date$'
 
 # Without a terminal and without --yes, nothing answers, so the update writes nothing
@@ -15,8 +16,8 @@ cmp .devcontainer/compose.yaml edited.yaml
 exec o3s update --yes
 stdout '^\.devcontainer/$'
 stdout '^  ~ compose\.yaml$'
-stdout '^Updated$'
-stdout '^Rebuild the cage to apply it$'
+stdout '^Updated, rebuilding the cage$'
+cmpenv devcontainer.log want.log
 exec o3s update
 stdout '^Up to date$'
 
@@ -29,5 +30,7 @@ grep ${REGISTRY@R}/features/tool:2 .devcontainer/devcontainer.json
 exec o3s update
 stdout '^Up to date$'
 
+-- want.log --
+up --workspace-folder $WORK --remove-existing-container
 -- edited.yaml --
 services: {}

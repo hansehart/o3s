@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/hansehart/o3s/internal/rebuild"
 	"github.com/hansehart/o3s/internal/registry"
 	"github.com/hansehart/o3s/internal/update"
 )
@@ -20,6 +21,12 @@ func newUpdate() *cobra.Command {
 		Short: "Bring the home's stack and features up to date",
 		Args:  usage(cobra.NoArgs),
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			out := cmd.OutOrStdout()
+			done, err := selfUpdate(cmd.Context(), cmd.InOrStdin(), out, yes)
+			// Leave the home to the new binary, which carries the update on
+			if err != nil || done {
+				return err
+			}
 			dir, err := workingHome()
 			// Hand back a working folder that stays unknown
 			if err != nil {
@@ -30,7 +37,6 @@ func newUpdate() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			out := cmd.OutOrStdout()
 			show(out, plan)
 			// Leave a home that already holds what the binary and its stores ship
 			if plan.Empty() {
@@ -52,7 +58,6 @@ func newUpdate() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			fmt.Fprintln(out, "Updated")
 			// Restart the stack where the allowlist changed
 			if hosts {
 				// Hand back a stack that fails to restart
@@ -60,7 +65,18 @@ func newUpdate() *cobra.Command {
 					return err
 				}
 			}
-			fmt.Fprintln(out, "Rebuild the cage to apply it")
+			cli, ok := rebuild.CLI()
+			// Leave the rebuild to the user where the host holds no devcontainer CLI
+			if !ok {
+				fmt.Fprintln(out, "Updated")
+				fmt.Fprintln(out, "Rebuild the cage to apply it")
+				return nil
+			}
+			fmt.Fprintln(out, "Updated, rebuilding the cage")
+			// Hand back a rebuild that fails, the home already updated
+			if err := rebuild.Run(cmd.Context(), cli, dir, out); err != nil {
+				return fmt.Errorf("updated the home, rebuild the cage to apply it: %w", err)
+			}
 			return nil
 		},
 	}
@@ -70,6 +86,10 @@ func newUpdate() *cobra.Command {
 
 // show prints every change an update makes, and what it leaves for want of a store.
 func show(out io.Writer, p update.Plan) {
+	// Show every o3s image whose tag moves to this release
+	for _, i := range p.Images {
+		fmt.Fprintf(out, "%-14s %s → %s\n", i.Name, i.Old, i.New)
+	}
 	// Head the stack's files with their folder
 	if len(p.Files) > 0 {
 		fmt.Fprintln(out, ".devcontainer/")

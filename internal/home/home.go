@@ -8,7 +8,6 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/tailscale/hujson"
@@ -16,6 +15,7 @@ import (
 	"github.com/hansehart/o3s"
 	"github.com/hansehart/o3s/internal/atomicfile"
 	"github.com/hansehart/o3s/internal/config"
+	"github.com/hansehart/o3s/internal/release"
 )
 
 // ErrExists marks a folder that already holds a home.
@@ -26,9 +26,6 @@ const stackDir = ".devcontainer"
 
 // Version is the version of the running binary, whose release tag the stack's own images take.
 var Version = "dev"
-
-// release matches the version of a published release.
-var release = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`)
 
 // images are the images o3s publishes with each release.
 var images = []string{"ghcr.io/hansehart/o3s-base", "ghcr.io/hansehart/o3s-gateway"}
@@ -105,7 +102,7 @@ func stack() ([]file, error) {
 // pinned tags o3s's own images with the binary's release, and leaves latest for any other build.
 func pinned(compose []byte) []byte {
 	// Keep latest for a build that names no release
-	if !release.MatchString(Version) {
+	if !release.IsRelease(Version) {
 		return compose
 	}
 	// Tag every o3s image with the release
