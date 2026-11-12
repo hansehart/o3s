@@ -23,34 +23,40 @@ We created o3s to keep pace: trusted environments, several projects at once, and
 
 Run `o3s` alone for a menu that leads through each of them.
 
-**firewall** allows the hosts the cage may reach.
+**firewall**
 ```sh
+# Allows the hosts the cage may reach
 o3s firewall add github.com --port 22 --port 443
 ```
 
-**secret** stores the values the proxy injects, on the host alone.
+**secret**
 ```sh
+# Stores the values the proxy injects, on the host alone
 echo "$OPENAI_API_KEY" | o3s secret add OPENAI_API_KEY
 ```
 
-**store** adds the feature collections o3s offers from.
+**store**
 ```sh
+# Adds the feature collections o3s offers from
 o3s store add ghcr.io/devcontainers/features
 ```
 
-**feature** installs a tool with the hosts and env it needs.
+**feature**
 ```sh
+# Installs a tool with the hosts and env it needs
 o3s feature add ghcr.io/hansehart/devcontainer-features/claude-code
 ```
 
-**cage** opens the home's workspace in VS Code inside the cage, or a shell inside it.
+**cage**
 ```sh
+# Opens the home's workspace in VS Code inside the cage, or a shell inside it
 o3s cage ide
 o3s cage shell
 ```
 
-**update** brings the binary, its images, the stack and your features forward.
+**update**
 ```sh
+# Brings the binary, its images, the stack and your features forward
 o3s update
 ```
 
