@@ -31,9 +31,12 @@ We created o3s to keep pace: trusted environments, several projects at once, and
    ```sh
    mkdir ~/o3s && cd ~/o3s && o3s init
    ```
-3. Open it in the cage, in VS Code or a shell.
+3. Open it in the cage.
    ```sh
    o3s cage ide
+   ```
+   or
+   ```sh
    o3s cage shell
    ```
 
