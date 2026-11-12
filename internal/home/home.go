@@ -2,11 +2,13 @@
 package home
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/tailscale/hujson"
@@ -21,6 +23,15 @@ var ErrExists = errors.New("already belongs to an o3s home")
 
 // stackDir is where a home keeps its stack.
 const stackDir = ".devcontainer"
+
+// Version is the version of the running binary, whose release tag the stack's own images take.
+var Version = "dev"
+
+// release matches the version of a published release.
+var release = regexp.MustCompile(`^[0-9]+\.[0-9]+\.[0-9]+$`)
+
+// images are the images o3s publishes with each release.
+var images = []string{"ghcr.io/hansehart/o3s-base", "ghcr.io/hansehart/o3s-gateway"}
 
 // Init writes a new home into a folder and hands back the paths it wrote.
 func Init(dir string) ([]string, error) {
@@ -81,10 +92,27 @@ func stack() ([]file, error) {
 				return err
 			}
 		}
+		// Run the images of the release the binary belongs to
+		if d.Name() == "compose.yaml" {
+			data = pinned(data)
+		}
 		files = append(files, file{path: strings.TrimPrefix(path, stackDir+"/"), data: data})
 		return nil
 	})
 	return files, err
+}
+
+// pinned tags o3s's own images with the binary's release, and leaves latest for any other build.
+func pinned(compose []byte) []byte {
+	// Keep latest for a build that names no release
+	if !release.MatchString(Version) {
+		return compose
+	}
+	// Tag every o3s image with the release
+	for _, image := range images {
+		compose = bytes.ReplaceAll(compose, []byte(image+":latest"), []byte(image+":"+Version))
+	}
+	return compose
 }
 
 // writeFile writes a file of the stack in a single step, with the folders it needs.

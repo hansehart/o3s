@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# NAME
+#        .goreleaser.yaml — the o3s binaries every release publishes
+#
+# DESCRIPTION
+#        Builds the CLI for Linux on amd64 and arm64 as plain binaries with their checksums,
+#        and attaches them to the release that release-please creates with its notes.
+#
+# SEE ALSO
+#        .github/workflows/publish-images.yaml, release-please-config.json
+version: 2
+
+builds:
+  # The CLI, static and stripped, naming the version it was released at
+  - id: o3s
+    main: ./cmd/o3s
+    binary: o3s
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  # Each binary as it is, named after the platform it runs on
+  - formats: [binary]
+    name_template: "o3s-{{ .Os }}-{{ .Arch }}"
+
+checksum:
+  # One file of checksums the installer checks a download against
+  name_template: checksums.txt
+
+changelog:
+  # Leave the notes to release-please
+  disable: true
+
+release:
+  # Attach the binaries to the release release-please created, keeping its notes
+  mode: keep-existing
