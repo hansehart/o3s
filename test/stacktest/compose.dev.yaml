@@ -7,9 +7,10 @@
 #        runs beside the o3s in daily use.
 #
 # USAGE
-#        The stack tests layer this file over compose.yaml, so every image comes from the
-#        checkout under test. By hand, raise the same pair from .devcontainer/ with
-#        docker compose -f compose.yaml -f compose.dev.yaml up --build.
+#        The stack tests layer this file over a home's compose.yaml, so every image comes
+#        from the checkout under test. By hand, from a home made by o3s init, with
+#        O3S_IMAGES=<checkout>/images docker compose -f .devcontainer/compose.yaml
+#        -f <checkout>/test/stacktest/compose.dev.yaml up --build.
 #
 # SEE ALSO
 #        compose.yaml, devcontainer.json
@@ -25,7 +26,7 @@ services:
   cage:
     # Build the base image from this checkout, which Dev Containers then layers features onto
     build:
-      context: ${O3S_IMAGES:-../images}/base
+      context: ${O3S_IMAGES:?name the checkout's images folder}/base
     image: o3s-base:dev
     pull_policy: build
     environment:
@@ -40,7 +41,7 @@ services:
   gateway:
     # Build the gateway from this checkout
     build:
-      context: ${O3S_IMAGES:-../images}/gateway
+      context: ${O3S_IMAGES:?name the checkout's images folder}/gateway
     image: o3s-gateway:dev
     pull_policy: build
     environment:

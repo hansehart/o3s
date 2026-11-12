@@ -36,7 +36,7 @@ func compose(ctx context.Context, tb testing.TB, args ...string) (string, error)
 	files := []string{
 		"compose",
 		"-f", filepath.Join(aHome(tb), ".devcontainer", "compose.yaml"),
-		"-f", filepath.Join(Repo(tb), ".devcontainer", "compose.dev.yaml"),
+		"-f", filepath.Join(Repo(tb), "test", "stacktest", "compose.dev.yaml"),
 	}
 	return run(ctx, tb, "docker", append(files, args...)...)
 }
