@@ -17,7 +17,7 @@
 
 If you are not willing to trade security for productivity, o3s is a match. Let an agent generate every line of code, and review every line by hand or none at all. Either way, which hosts your agents reach and which secrets they can read stays yours to decide.
 
-We do software development for a living, and o3s is our answer to keeping pace: trusted environments, several projects at once, and several features inside each. AI will not be the death of good engineering. It is the golden era of agentic software engineers. This is how we build with it and still stand behind every line that ships.
+We created o3s to keep pace: trusted environments, several projects at once, and several features inside each. AI will not be the death of good engineering. It is the golden era of agentic software engineers. This is how we build with it and still stand behind every line that ships.
 
 ## Getting started
 
