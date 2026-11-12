@@ -72,6 +72,10 @@ func TestInitCopiesTheStack(t *testing.T) {
 	dir := anInitializedHome(t)
 
 	err := fs.WalkDir(o3s.Stack, ".", func(path string, d fs.DirEntry, err error) error {
+		// Pass over the templates, which the binary reads from itself alone
+		if err == nil && d.IsDir() && d.Name() == "templates" {
+			return fs.SkipDir
+		}
 		// Hand back a walk that fails
 		if err != nil || d.IsDir() || filepath.Base(path) == "devcontainer.json" {
 			return err
@@ -162,5 +166,17 @@ func TestInitPinsTheImagesToTheRelease(t *testing.T) {
 				t.Errorf("version %s: compose lacks %s%s", tt.version, image, tt.tag)
 			}
 		}
+	}
+}
+
+// A home holds the stack alone, while the templates the binary seeds from stay in the binary.
+func TestInitLeavesTheTemplatesInTheBinary(t *testing.T) {
+	dir := anInitializedHome(t)
+
+	_, err := os.Stat(filepath.Join(dir, ".devcontainer", "templates"))
+
+	// Require the home without a copy of the templates
+	if !errors.Is(err, fs.ErrNotExist) {
+		t.Errorf("home holds .devcontainer/templates (%v), want it absent", err)
 	}
 }

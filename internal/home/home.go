@@ -75,10 +75,14 @@ type file struct {
 	data []byte
 }
 
-// stack hands back every file of the stack the binary ships, its config without features.
+// stack hands back every file of the stack a home holds, its config without features and its templates left in the binary.
 func stack() ([]file, error) {
 	var files []file
 	err := fs.WalkDir(o3s.Stack, stackDir, func(path string, d fs.DirEntry, err error) error {
+		// Leave the templates in the binary, which seeds a home's files from them alone
+		if err == nil && d.IsDir() && d.Name() == "templates" {
+			return fs.SkipDir
+		}
 		// Hand back a walk that fails, and take folders as they come with their files
 		if err != nil || d.IsDir() {
 			return err
