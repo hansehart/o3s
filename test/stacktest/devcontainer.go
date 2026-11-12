@@ -62,7 +62,7 @@ func devHome(tb testing.TB) string {
 	if !strings.Contains(string(config), composeLine) {
 		tb.Fatalf("Setup: the home's config lacks %s", composeLine)
 	}
-	dev := fmt.Sprintf(`"dockerComposeFile": ["compose.yaml", %q]`, filepath.Join(Repo(tb), ".devcontainer", "compose.dev.yaml"))
+	dev := fmt.Sprintf(`"dockerComposeFile": ["compose.yaml", %q]`, filepath.Join(Repo(tb), "test", "stacktest", "compose.dev.yaml"))
 	// Stop when the config stays unwritten
 	if err := os.WriteFile(path, []byte(strings.Replace(string(config), composeLine, dev, 1)), 0o644); err != nil {
 		tb.Fatalf("Setup: write the home's config: %v", err)

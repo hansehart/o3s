@@ -9,14 +9,13 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema/v6"
 
-	"github.com/hansehart/o3s"
 	"github.com/hansehart/o3s/internal/config"
 )
 
 // theShippedSchema compiles the schema every home receives.
 func theShippedSchema(t *testing.T) *jsonschema.Schema {
 	t.Helper()
-	data, err := o3s.Stack.ReadFile(".devcontainer/o3s.schema.json")
+	data, err := os.ReadFile("../home/stack/o3s.schema.json")
 	// Stop when the stack ships no schema
 	if err != nil {
 		t.Fatalf("Setup: read the shipped schema: %v", err)

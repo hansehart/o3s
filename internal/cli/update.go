@@ -61,7 +61,7 @@ func newUpdate() *cobra.Command {
 			// Restart the stack where the allowlist changed
 			if hosts {
 				// Hand back a stack that fails to restart
-				if err := restart(cmd, dir); err != nil {
+				if err := restartStack(cmd, dir); err != nil {
 					return err
 				}
 			}
