@@ -27,6 +27,15 @@ func newInit() *cobra.Command {
 			if err != nil {
 				return err
 			}
+			secretsFile, err := secrets.Path()
+			// Hand back a secrets file whose place stays unknown
+			if err != nil {
+				return err
+			}
+			// Turn away a home that would show the cage the host's secrets, CA or tools
+			if f, ok := home.Holds(dir, filepath.Dir(secretsFile), paths.Config(), paths.State(), paths.Data()); ok {
+				return fmt.Errorf("%s holds %s, which the cage would see, so o3s init needs a folder of its own, as in mkdir ~/o3s && cd ~/o3s", dir, f)
+			}
 			out := cmd.OutOrStdout()
 			fresh := !home.Exists(dir)
 			// Write a new home into a folder that holds none
