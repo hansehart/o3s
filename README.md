@@ -31,7 +31,7 @@ o3s firewall add github.com --port 22 --port 443
 
 **secret**
 ```sh
-# Stores the values the proxy injects, on the host alone
+# Lets the cage use a secret while its value stays on the host
 echo "$OPENAI_API_KEY" | o3s secret add OPENAI_API_KEY
 ```
 
