@@ -23,11 +23,18 @@ We created o3s to keep pace: trusted environments, several projects at once, and
 
 **Prerequisites:** Linux on amd64 or arm64, [Docker](https://docs.docker.com/engine/install/) with Compose, [VS Code](https://code.visualstudio.com/download) with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers), and tar and xz.
 
-```sh
-curl -fsSL https://github.com/hansehart/o3s/releases/latest/download/install.sh | sh
-mkdir ~/o3s && cd ~/o3s && o3s init
-o3s cage ide
-```
+1. Install o3s.
+   ```sh
+   curl -fsSL https://github.com/hansehart/o3s/releases/latest/download/install.sh | sh
+   ```
+2. Create your home.
+   ```sh
+   mkdir ~/o3s && cd ~/o3s && o3s init
+   ```
+3. Open it in the cage.
+   ```sh
+   o3s cage ide
+   ```
 
 > [!TIP]
 > Make it yours in the [customization guide](https://github.com/Hansehart/o3s/wiki/Customization).
