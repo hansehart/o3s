@@ -30,8 +30,8 @@ func aHome(tb testing.TB) string {
 	}
 	tb.Setenv("O3S_IMAGES", filepath.Join(Repo(tb), "images"))
 	dir := filepath.Join(tb.TempDir(), "home")
-	// Stop when the home's folder fails to appear
-	if err := os.Mkdir(dir, 0o750); err != nil {
+	// Stop when the home's folder fails to appear, open to read as a folder a user makes with mkdir
+	if err := os.Mkdir(dir, 0o755); err != nil { //nolint:gosec // the cage's user reads the home through its mount
 		tb.Fatalf("Setup: %v", err)
 	}
 	cmd := exec.CommandContext(tb.Context(), bin, "init")
