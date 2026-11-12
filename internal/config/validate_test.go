@@ -20,6 +20,9 @@ func TestAllowRejectsAChangeOutsideTheRules(t *testing.T) {
 		{name: "wildcard inside a label", change: config.Change{Name: "api.*.example.com"}},
 		{name: "IPv6 address", change: config.Change{Name: "::1"}},
 		{name: "CIDR beyond 32 bits", change: config.Change{Name: "192.0.2.0/33"}},
+		{name: "octet past 255", change: config.Change{Name: "256.0.0.1"}},
+		{name: "address short of four octets", change: config.Change{Name: "192.0.2"}},
+		{name: "top-level label of digits alone", change: config.Change{Name: "example.123"}},
 		{name: "port zero", change: config.Change{Name: "example.com", Ports: []int{0}}},
 		{name: "port past the range", change: config.Change{Name: "example.com", Ports: []int{65536}}},
 		{name: "lowercase secret", change: config.Change{Name: "api.example.com", Secret: "example_token"}},
@@ -47,7 +50,7 @@ func TestAllowRejectsAChangeOutsideTheRules(t *testing.T) {
 
 // A change inside the allowlist's rules goes through, whatever form of host it names.
 func TestAllowAcceptsEveryFormOfHost(t *testing.T) {
-	names := []string{"example.com", "*.example.org", "192.0.2.1", "198.51.100.0/24"}
+	names := []string{"example.com", "*.example.org", "192.0.2.1", "198.51.100.0/24", "example1.com", "1example.com", "xn--bcher-kva.example", "localhost"}
 	// Check every form against its own empty config
 	for _, name := range names {
 		t.Run(name, func(t *testing.T) {
