@@ -4,4 +4,5 @@
 .devcontainer/o3s.code-workspace
 *.crt
 *.key
+/.github/tools/node_modules/
 /dist/
