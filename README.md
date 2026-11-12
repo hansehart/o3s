@@ -32,7 +32,7 @@ o3s firewall add github.com --port 22 --port 443
 **secret**
 ```sh
 # Lets the cage use a secret while its value stays on the host
-echo "$OPENAI_API_KEY" | o3s secret add OPENAI_API_KEY
+echo "$EXAMPLE_TOKEN" | o3s secret add EXAMPLE_TOKEN
 ```
 
 **store**
@@ -96,7 +96,7 @@ You keep the whole policy in one file, `o3s.json`, and change it with `o3s firew
 {
   "hosts": [
     { "name": "github.com", "ports": [22, 443], "by": ["user"] },
-    { "name": "api.openai.com", "ports": [443], "secret": "OPENAI_API_KEY", "inject": ["header"], "by": ["user"] }
+    { "name": "api.example.com", "ports": [443], "secret": "EXAMPLE_TOKEN", "inject": ["header"], "by": ["user"] }
   ]
 }
 ```
