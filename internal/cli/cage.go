@@ -60,7 +60,7 @@ func newCageIDE() *cobra.Command {
 	}
 }
 
-// newCageShell builds the command that raises the home's cage and opens a shell inside it.
+// newCageShell builds the command that raises the home's cage and opens a shell inside it, in the projects.
 func newCageShell() *cobra.Command {
 	return &cobra.Command{
 		Use:   "shell",
@@ -83,7 +83,7 @@ func newCageShell() *cobra.Command {
 			if err := up.Run(); err != nil {
 				return fmt.Errorf("raise the cage: %w", err)
 			}
-			return syscall.Exec(cli, []string{cli, "exec", "--workspace-folder", dir, "bash"}, os.Environ())
+			return syscall.Exec(cli, []string{cli, "exec", "--workspace-folder", dir, "bash", "-c", "cd /home/ubuntu/projects && exec bash"}, os.Environ())
 		},
 	}
 }

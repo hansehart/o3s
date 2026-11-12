@@ -1,4 +1,4 @@
-# The shell raises the cage, then takes over the terminal inside it
+# The shell raises the cage, then takes over the terminal inside it, in the projects
 mkdir home
 cd home
 exec o3s init
@@ -12,4 +12,4 @@ stderr 'no o3s home'
 
 -- want.log --
 up --workspace-folder $WORK/home
-exec --workspace-folder $WORK/home bash
+exec --workspace-folder $WORK/home bash -c cd /home/ubuntu/projects && exec bash

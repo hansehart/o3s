@@ -3,6 +3,10 @@
 		{
 			"name": "o3s",
 			"path": "/home/ubuntu/o3s"
+		},
+		{
+			"name": "projects",
+			"path": "/home/ubuntu/projects"
 		}
 	]
 }

@@ -76,3 +76,26 @@ func TestInitWritesTheBinaryAsTheStartHook(t *testing.T) {
 		}
 	}
 }
+
+// A new home's workspace opens the home and the projects, where the work survives a rebuild.
+func TestTheWorkspaceOpensTheProjects(t *testing.T) {
+	dir := anInitializedHome(t)
+	// Stop when the workspace stays unwritten
+	if _, err := home.Seed(dir); err != nil {
+		t.Fatalf("Setup: Seed() = %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(dir, filepath.Base(dir)+".code-workspace"))
+
+	// Stop when the workspace stays unread
+	if err != nil {
+		t.Fatalf("ReadFile() = %v", err)
+	}
+	// Require both folders in the workspace
+	for _, folder := range []string{`"path": "/home/ubuntu/o3s"`, `"path": "/home/ubuntu/projects"`} {
+		// Report a folder the workspace leaves out
+		if !strings.Contains(string(data), folder) {
+			t.Errorf("workspace lacks %s:\n%s", folder, data)
+		}
+	}
+}
