@@ -21,16 +21,62 @@ If you are not willing to trade security for productivity, o3s is a match. Let a
 
 We do software development for a living, and o3s is our answer to keeping pace: trusted environments, several projects at once, and several features inside each. AI will not be the death of good engineering. It is the golden era of agentic software engineers. This is how we build with it and still stand behind every line that ships.
 
-## Security
+## Getting started
 
-You keep the whole policy in one file, `o3s.json`, and change it with `o3s firewall`:
+**Prerequisites:** Linux on amd64 or arm64, [Docker](https://docs.docker.com/engine/install/) with Compose 5.6.1 or later, [VS Code](https://code.visualstudio.com/download) with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers), and `tar` and `xz`.
 
 ```sh
-o3s firewall add github.com --port 22 --port 443
-o3s firewall add api.openai.com --secret OPENAI_API_KEY   # injected for this host only, never inside the cage
-echo "$OPENAI_API_KEY" | o3s secret add OPENAI_API_KEY    # the value, kept on the host
-o3s firewall ls
+curl -fsSL https://github.com/hansehart/o3s/releases/latest/download/install.sh | sh
+mkdir ~/o3s && cd ~/o3s && o3s init
+code ~/o3s/o3s.code-workspace     # then: Dev Containers: Reopen in Container
 ```
+
+> [!TIP]
+> Check the script before you run it. Every release lists `install.sh` in its `checksums.txt` and signs it, so `gh attestation verify install.sh --repo hansehart/o3s` names the build it came from.
+
+> [!NOTE]
+> Coming from a cloned o3s? Start fresh with `o3s init` in a new folder.
+
+> [!TIP]
+> Make it yours in the [customization guide](https://github.com/Hansehart/o3s/wiki/Customization).
+
+> [!WARNING]
+> Only `~/features`, `~/o3s`, and `~/projects` survive a rebuild. Keep your work in `~/projects`.
+
+## Commands
+
+Run `o3s` alone for a menu that leads through each of them.
+
+**firewall** allows the hosts the cage may reach.
+```sh
+o3s firewall add github.com --port 22 --port 443
+```
+
+**secret** stores the values the proxy injects, on the host alone.
+```sh
+echo "$OPENAI_API_KEY" | o3s secret add OPENAI_API_KEY
+```
+
+**store** adds the feature collections o3s offers from.
+```sh
+o3s store add ghcr.io/devcontainers/features
+```
+
+**feature** installs a tool with the hosts and env it needs.
+```sh
+o3s feature add ghcr.io/hansehart/devcontainer-features/claude-code
+```
+
+**update** brings the binary, its images, the stack and your features forward.
+```sh
+o3s update
+```
+
+## What you get
+
+### Security
+
+You keep the whole policy in one file, `o3s.json`, and change it with `o3s firewall`:
 
 ```json
 {
@@ -43,7 +89,7 @@ o3s firewall ls
 
 A host is a domain, a wildcard like `*.docker.io` that covers every subdomain, an IPv4 address or an IPv4 range. Every host names its ports, and a host with a secret carries it in its requests' headers, or in the query or body it names. Each change restarts the gateway and the proxy, so the cage reaches the new policy at once. The value of a secret stays on the host in `~/.config/o3s/secrets.env`. The cage sees only a stand-in, which the proxy swaps for the value on the way out.
 
-## Productivity
+### Productivity
 
 You list every project in one file, `~/o3s/o3s.code-workspace`, one folder per repository or worktree:
 
@@ -69,13 +115,7 @@ Open it and every repository lands in one source-control view, worktrees nested 
   </picture>
 </p>
 
-Add the agents and tools you need as features:
-
-```sh
-o3s feature add ghcr.io/hansehart/devcontainer-features/claude-code
-```
-
-A feature brings the hosts and env it needs, and `o3s` names each secret it waits for. Run whatever agent you like, several at once, each on its own branch. They work in parallel without colliding, and everything lands in one place for you to review.
+Add the agents and tools you need as features, then run whatever agent you like, several at once, each on its own branch. They work in parallel without colliding, and everything lands in one place for you to review.
 
 <p align="center">
   <picture>
@@ -84,9 +124,9 @@ A feature brings the hosts and env it needs, and `o3s` names each secret it wait
   </picture>
 </p>
 
-## Iteration
+### Velocity
 
-Rootless Docker and minikube can run inside the sandbox, so an agent can stand up your whole stack, break it, and stand it up again without touching anything real. Two things have to hold: the infrastructure has to behave like production, and the loop from failure to next attempt has to be short.
+Break early, fix earlier, ship earliest. Rootless Docker and minikube run inside the cage, so an agent can stand up your whole stack, break it, and stand it up again without touching anything real. The stack behaves like production, and the loop from failure to the next attempt stays short.
 
 ## References
 
@@ -105,37 +145,6 @@ See the [comparison](https://github.com/Hansehart/o3s/wiki/Comparison) for other
 [cdx]: https://github.com/openai/codex/tree/main/.devcontainer
 
 Something here you would do differently? Open an issue, send a pull request, or just get in touch. And if one of the others fits you better, take it, as long as you keep both your security and your productivity. You are always welcome back.
-
-## Getting started
-
-**Prerequisites:** Linux on amd64 or arm64, [Docker](https://docs.docker.com/engine/install/), [VS Code](https://code.visualstudio.com/download) with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers), and `tar` and `xz`, which unpack the devcontainer CLI's Node.
-
-1. Install o3s and the devcontainer CLI it rebuilds the cage with.
-   ```bash
-   curl -fsSL https://github.com/hansehart/o3s/releases/latest/download/install.sh | sh
-   ```
-2. Make a folder your o3s home.
-   ```bash
-   mkdir ~/o3s && cd ~/o3s && o3s init
-   ```
-3. Allow your hosts, store your secrets and add your features, or run `o3s` and pick each step from the menu.
-4. Open the workspace, then run `Dev Containers: Reopen in Container`, and keep your projects in `~/projects`.
-   ```bash
-   code ~/o3s/o3s.code-workspace
-   ```
-5. Run `o3s update` whenever you like, which brings the binary, its images, the stack and your features forward.
-
-> [!TIP]
-> Check the script before you run it. Every release lists `install.sh` in its `checksums.txt` and signs it, so `gh attestation verify install.sh --repo hansehart/o3s` names the build it came from.
-
-> [!NOTE]
-> Coming from a cloned o3s? Start fresh with `o3s init` in a new folder.
-
-> [!TIP]
-> Make it yours in the [customization guide](https://github.com/Hansehart/o3s/wiki/Customization).
-
-> [!WARNING]
-> Only `~/features`, `~/o3s`, and `~/projects` survive a rebuild. Keep your work in `~/projects`.
 
 ## What the name means
 
