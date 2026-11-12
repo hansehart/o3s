@@ -31,6 +31,11 @@ const fakeDevcontainer = `#!/bin/sh
 echo "$*" >> "$WORK/devcontainer.log"
 `
 
+// fakeAaEnabled answers as a host whose kernel runs no AppArmor, so no script asks for sudo.
+const fakeAaEnabled = `#!/bin/sh
+exit 1
+`
+
 // tool is a feature that needs a host with a secret, sets env, and keeps its data in a state dir.
 const tool = `{
   "id": "tool",
@@ -80,6 +85,10 @@ func TestScripts(t *testing.T) {
 			}
 			// Hand back a fake devcontainer CLI that stays unwritten
 			if err := os.WriteFile(filepath.Join(bin, "devcontainer"), []byte(fakeDevcontainer), 0o755); err != nil { //nolint:gosec // the scripts run the fake CLI
+				return err
+			}
+			// Hand back a fake AppArmor check that stays unwritten
+			if err := os.WriteFile(filepath.Join(bin, "aa-enabled"), []byte(fakeAaEnabled), 0o755); err != nil { //nolint:gosec // the scripts run the fake check
 				return err
 			}
 			env.Setenv("PATH", bin+string(os.PathListSeparator)+env.Getenv("PATH"))

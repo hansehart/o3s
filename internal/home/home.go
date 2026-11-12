@@ -3,6 +3,7 @@ package home
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -26,6 +27,12 @@ const stackDir = ".devcontainer"
 
 // Version is the version of the running binary, whose release tag the stack's own images take.
 var Version = "dev"
+
+// Executable is the running binary's own path, which a release writes as the stack's start hook.
+var Executable string
+
+// startHook is the start hook the shipped config names, which a release replaces with its own path.
+const startHook = `"initializeCommand": "o3s init"`
 
 // images are the images o3s publishes with each release.
 var images = []string{"ghcr.io/hansehart/o3s-base", "ghcr.io/hansehart/o3s-gateway"}
@@ -81,13 +88,14 @@ func stack() ([]file, error) {
 		if err != nil {
 			return err
 		}
-		// Start the config with no feature, the way a home starts with no host
+		// Start the config with no feature, the way a home starts with no host, and the binary as its start hook
 		if d.Name() == "devcontainer.json" {
 			data, err = withoutFeatures(data)
 			// Hand back a config that fails to edit
 			if err != nil {
 				return err
 			}
+			data = hooked(data)
 		}
 		// Run the images of the release the binary belongs to
 		if d.Name() == "compose.yaml" {
@@ -97,6 +105,58 @@ func stack() ([]file, error) {
 		return nil
 	})
 	return files, err
+}
+
+// hooked names the release binary's own path as the start hook, so the editor finds it whatever its PATH holds.
+func hooked(config []byte) []byte {
+	// Keep the plain command for a build that names no release
+	if !release.IsRelease(Version) || Executable == "" {
+		return config
+	}
+	path, _ := json.Marshal(Executable)
+	return bytes.Replace(config, []byte(startHook), []byte(`"initializeCommand": [`+string(path)+`, "init"]`), 1)
+}
+
+// Exists reports whether a folder holds an o3s home, its settings or its stack.
+func Exists(dir string) bool {
+	// Look for either part of a home
+	for _, name := range []string{config.File, stackDir} {
+		// Report the first part the folder holds
+		if _, err := os.Stat(filepath.Join(dir, name)); err == nil {
+			return true
+		}
+	}
+	return false
+}
+
+// Seed writes the files a home needs and lacks, its settings and its workspace, and hands back what it wrote.
+func Seed(dir string) ([]string, error) {
+	var written []string
+	settings := filepath.Join(dir, config.File)
+	// Start settings a home lost with the ones a new home gets
+	if _, err := os.Stat(settings); errors.Is(err, fs.ErrNotExist) {
+		c := config.New()
+		// Hand back settings that stay unwritten
+		if err := c.Save(dir); err != nil {
+			return written, err
+		}
+		written = append(written, settings)
+	}
+	workspace := filepath.Join(dir, stackDir, "o3s.code-workspace")
+	// Start the workspace from its template where the home holds none
+	if _, err := os.Stat(workspace); errors.Is(err, fs.ErrNotExist) {
+		data, err := o3s.Stack.ReadFile(stackDir + "/templates/o3s.code-workspace")
+		// Hand back a template the binary fails to hand over
+		if err != nil {
+			return written, err
+		}
+		// Hand back a workspace that stays unwritten
+		if err := writeFile(workspace, data); err != nil {
+			return written, err
+		}
+		written = append(written, workspace)
+	}
+	return written, nil
 }
 
 // pinned tags o3s's own images with the binary's release, and leaves latest for any other build.
@@ -133,4 +193,22 @@ func withoutFeatures(data []byte) ([]byte, error) {
 		return nil, err
 	}
 	return v.Pack(), nil
+}
+
+// SeedSecrets starts the secrets file from its template where the user holds none, in a folder for the user alone.
+func SeedSecrets(path string) (bool, error) {
+	// Keep a secrets file the user holds
+	if _, err := os.Stat(path); err == nil {
+		return false, nil
+	}
+	data, err := o3s.Stack.ReadFile(stackDir + "/templates/secrets.env")
+	// Hand back a template the binary fails to hand over
+	if err != nil {
+		return false, err
+	}
+	// Hand back a folder that stays uncreated
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		return false, err
+	}
+	return true, atomicfile.Write(path, data, 0o600)
 }

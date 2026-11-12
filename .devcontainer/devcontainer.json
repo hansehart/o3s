@@ -76,8 +76,8 @@
     "remoteUser": "ubuntu",
     // Which folder is the default inside the dev container
     "workspaceFolder": "/home/ubuntu/o3s",
-    // Seed the allowlist from its template and derive the cage environment from it
-    "initializeCommand": "bash .devcontainer/lifecycle/initialize.sh",
+    // Prepare this host before every start, with its proxy CA, the cage's confinement and the values compose reads
+    "initializeCommand": "o3s init",
     // Probe that egress reaches the gateway on every container start
     "postStartCommand": "bash .devcontainer/lifecycle/post-start.sh",
     // VSCode settings
