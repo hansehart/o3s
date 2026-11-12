@@ -31,6 +31,26 @@ const fakeDevcontainer = `#!/bin/sh
 echo "$*" >> "$WORK/devcontainer.log"
 `
 
+// fakeCode stands in for the VS Code CLI, so a script sees what it opens.
+const fakeCode = `#!/bin/sh
+echo "$*" >> "$WORK/code.log"
+`
+
+// fakeWslpath stands in for WSL's path converter, naming a folder's Windows form and the Windows side's APPDATA.
+const fakeWslpath = `#!/bin/sh
+echo "$*" >> "$WORK/wslpath.log"
+# Convert the way WSL does, into the Windows form or back into the Linux one
+case "$1" in
+  -w) echo "\\\\wsl.localhost\\Ubuntu$2" ;;
+  -u) echo "$WORK/appdata" ;;
+esac
+`
+
+// fakeCmd stands in for the Windows shell, naming the APPDATA folder.
+const fakeCmd = `#!/bin/sh
+echo 'C:\Users\ubuntu\AppData\Roaming'
+`
+
 // fakeAaEnabled answers as a host whose kernel runs no AppArmor, so no script asks for sudo.
 const fakeAaEnabled = `#!/bin/sh
 exit 1
@@ -87,9 +107,21 @@ func TestScripts(t *testing.T) {
 			if err := os.WriteFile(filepath.Join(bin, "devcontainer"), []byte(fakeDevcontainer), 0o755); err != nil { //nolint:gosec // the scripts run the fake CLI
 				return err
 			}
-			// Hand back a fake AppArmor check that stays unwritten
-			if err := os.WriteFile(filepath.Join(bin, "aa-enabled"), []byte(fakeAaEnabled), 0o755); err != nil { //nolint:gosec // the scripts run the fake check
-				return err
+			fakes := map[string]string{"aa-enabled": fakeAaEnabled, "code": fakeCode, "wslpath": fakeWslpath, "cmd.exe": fakeCmd}
+			// Write every other fake the scripts call
+			for name, script := range fakes {
+				// Hand back a fake that stays unwritten
+				if err := os.WriteFile(filepath.Join(bin, name), []byte(script), 0o755); err != nil { //nolint:gosec // the scripts run the fakes
+					return err
+				}
+			}
+			// Name the folder testscript put o3s in, so a script can narrow PATH to the fakes and o3s
+			for _, dir := range filepath.SplitList(env.Getenv("PATH")) {
+				// Take the folder that holds o3s
+				if _, err := os.Stat(filepath.Join(dir, "o3s")); err == nil {
+					env.Setenv("O3S_DIR", dir)
+					break
+				}
 			}
 			env.Setenv("PATH", bin+string(os.PathListSeparator)+env.Getenv("PATH"))
 			return nil

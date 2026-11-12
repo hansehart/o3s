@@ -1,0 +1,15 @@
+# The shell raises the cage, then takes over the terminal inside it
+mkdir home
+cd home
+exec o3s init
+exec o3s cage shell
+cmpenv $WORK/devcontainer.log $WORK/want.log
+
+# A folder without an o3s home points at the command that starts one
+cd $WORK
+! exec o3s cage shell
+stderr 'no o3s home'
+
+-- want.log --
+up --workspace-folder $WORK/home
+exec --workspace-folder $WORK/home bash

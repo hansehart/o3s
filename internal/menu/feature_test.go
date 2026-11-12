@@ -130,13 +130,13 @@ func TestFeatureDialogsWithNothingToChooseEndWithANote(t *testing.T) {
 	}
 }
 
-// The first question offers the features between the stores and the update.
+// The first question offers the features after the stores, then the cage and the update.
 func TestTheFirstQuestionOffersFeatures(t *testing.T) {
 	q, _ := next(aHome, nil)
 
 	got := q.Options
 
-	want := []Option{{Value: "init"}, {Value: "firewall"}, {Value: "secret"}, {Value: "store"}, {Value: "feature"}, {Value: "update"}}
+	want := []Option{{Value: "init"}, {Value: "firewall"}, {Value: "secret"}, {Value: "store"}, {Value: "feature"}, {Value: "cage"}, {Value: "update"}}
 	// Report options that differ
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("options (-want +got):\n%s", diff)

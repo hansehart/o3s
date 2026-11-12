@@ -1,0 +1,40 @@
+# The workspace opens in VS Code straight in the cage
+mkdir home
+cd home
+exec o3s init
+exec o3s cage ide
+stdout '^Opening .*/home in the cage$'
+grep '^--file-uri vscode-remote://dev-container\+[0-9a-f]+/home/ubuntu/o3s/home\.code-workspace$' $WORK/code.log
+
+# Under WSL without the setting, o3s names the two lines to add and opens nothing
+rm $WORK/code.log
+env WSL_DISTRO_NAME=Ubuntu
+! exec o3s cage ide
+stderr '"dev\.containers\.executeInWSL": true'
+stderr '"dev\.containers\.executeInWSLDistro": "Ubuntu"'
+! exists $WORK/code.log
+
+# Under WSL with the setting, VS Code opens the folder's Windows form
+mkdir $WORK/appdata/Code/User
+cp $WORK/settings.json $WORK/appdata/Code/User/settings.json
+exec o3s cage ide
+grep '^--file-uri vscode-remote://dev-container\+[0-9a-f]+/home/ubuntu/o3s/home\.code-workspace$' $WORK/code.log
+grep '^-w .*/home$' $WORK/wslpath.log
+env WSL_DISTRO_NAME=
+
+# Without the VS Code CLI on PATH, o3s names it
+rm $WORK/.bin/code
+env PATH=$WORK/.bin${:}$O3S_DIR
+! exec o3s cage ide
+stderr 'VS Code'
+
+# A folder without an o3s home points at the command that starts one
+cd $WORK
+! exec o3s cage ide
+stderr 'no o3s home'
+
+-- settings.json --
+{
+  // run Docker inside WSL
+  "dev.containers.executeInWSL": true,
+}
