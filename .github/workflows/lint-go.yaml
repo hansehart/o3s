@@ -27,6 +27,14 @@ jobs:
         with:
           version: v2.15.0
 
+  goreleaser-check:
+    runs-on: ubuntu-latest
+    steps:
+      # check out the release config
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       # check the release config, so a broken one fails here rather than at release
       - uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
