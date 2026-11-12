@@ -34,7 +34,7 @@ var Executable string
 const startHook = `"initializeCommand": "o3s init"`
 
 // images are the images o3s publishes with each release.
-var images = []string{"ghcr.io/hansehart/o3s-base", "ghcr.io/hansehart/o3s-gateway"}
+var images = []string{"ghcr.io/hansehart/o3s-cage", "ghcr.io/hansehart/o3s-gateway"}
 
 // Init writes a new home into a folder and hands back the paths it wrote.
 func Init(dir string) ([]string, error) {

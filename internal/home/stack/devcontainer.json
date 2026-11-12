@@ -2,7 +2,7 @@
 //        devcontainer.json — the o3s dev container (the "cage")
 //
 // DESCRIPTION
-//        The sandboxed dev container: the o3s-base image plus layered features, the remote
+//        The sandboxed dev container: the o3s-cage image plus layered features, the remote
 //        user, and the cage's scripts. Egress is forced through the o3s gateway and secrets
 //        are injected through the proxy.
 //

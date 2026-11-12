@@ -137,7 +137,7 @@ func TestImagesNamesTheTagsAReleaseMoves(t *testing.T) {
 	if len(same) != 0 {
 		t.Errorf("Images() at the same release = %v, want none", same)
 	}
-	want := []home.ImageChange{{Name: "o3s-base", Old: "0.7.0", New: "0.8.0"}, {Name: "o3s-gateway", Old: "0.7.0", New: "0.8.0"}}
+	want := []home.ImageChange{{Name: "o3s-cage", Old: "0.7.0", New: "0.8.0"}, {Name: "o3s-gateway", Old: "0.7.0", New: "0.8.0"}}
 	// Require both images moved to the new release
 	if diff := cmp.Diff(want, moved); diff != "" {
 		t.Errorf("Images() (-want +got):\n%s", diff)

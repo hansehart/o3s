@@ -156,7 +156,7 @@ func TestInitPinsTheImagesToTheRelease(t *testing.T) {
 			t.Fatalf("ReadFile() = %v", err)
 		}
 		// Require both o3s images at the tag
-		for _, image := range []string{"ghcr.io/hansehart/o3s-base:", "ghcr.io/hansehart/o3s-gateway:"} {
+		for _, image := range []string{"ghcr.io/hansehart/o3s-cage:", "ghcr.io/hansehart/o3s-gateway:"} {
 			// Report an image at another tag
 			if !bytes.Contains(data, []byte("image: "+image+tt.tag+"\n")) {
 				t.Errorf("version %s: compose lacks %s%s", tt.version, image, tt.tag)
