@@ -91,3 +91,32 @@ jobs:
       - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-checksums: dist/checksums.txt
+
+  smoke:
+    needs: binaries
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      attestations: read # read the release's attestation, which install.sh verifies
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ github.ref_name }}
+    steps:
+      # install the release just published the way a user does, with gh logged in so its attestation gets verified
+      - name: Install the release
+        run: |
+          curl -fsSL --proto '=https' --tlsv1.2 "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/install.sh" \
+            | sh -s -- --version "${TAG#v}" --no-devcontainer | tee install.log
+          grep -q '^Verified its build attestation$' install.log
+
+      # require the installed binary to name the release it came from
+      - name: Check the version
+        run: test "$("${HOME}/.local/bin/o3s" --version)" = "o3s version ${TAG#v}"
+
+      # require a fresh home on the latest release to need nothing, which reads the real latest release
+      - name: Check the update
+        run: |
+          cd "$(mktemp -d)"
+          "${HOME}/.local/bin/o3s" init >/dev/null
+          "${HOME}/.local/bin/o3s" update --yes | tee update.log
+          grep -q '^Up to date$' update.log
