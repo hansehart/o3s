@@ -71,3 +71,23 @@ func TestEnvNamesTheFoldersComposeMounts(t *testing.T) {
 		}
 	}
 }
+
+// The homes this machine holds besides one are those whose folders still exist, the home itself left out.
+func TestOtherHomesListsTheLiveOnes(t *testing.T) {
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+	this, other, gone := t.TempDir(), t.TempDir(), filepath.Join(t.TempDir(), "gone")
+	// Record every home on this machine
+	for _, home := range []string{this, other, gone} {
+		// Stop when a home's state stays unwritten
+		if err := HomeState(home); err != nil {
+			t.Fatalf("Setup: HomeState(%s) = %v", home, err)
+		}
+	}
+
+	got := OtherHomes(this)
+
+	// Require the other live home alone
+	if len(got) != 1 || got[0] != other {
+		t.Errorf("OtherHomes() = %v, want [%s]", got, other)
+	}
+}

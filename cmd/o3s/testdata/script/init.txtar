@@ -64,6 +64,12 @@ exec o3s init
 stdout '^The stack differs from this o3s, run o3s update$'
 cmp .devcontainer/compose.yaml $WORK/edited.yaml
 
+# A second home on this machine names the first, since o3s runs one home per machine for now
+mkdir $WORK/other
+cd $WORK/other
+exec o3s init
+stdout '^⚠ '$WORK'/home is already an o3s home, and o3s runs one home per machine for now$'
+
 -- edited.yaml --
 services: {}
 -- want.json --
