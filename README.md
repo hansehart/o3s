@@ -26,7 +26,7 @@ We created o3s to keep pace: trusted environments, several projects at once, and
 ```sh
 curl -fsSL https://github.com/hansehart/o3s/releases/latest/download/install.sh | sh
 mkdir ~/o3s && cd ~/o3s && o3s init
-code ~/o3s/o3s.code-workspace     # then: Dev Containers: Reopen in Container
+o3s cage ide
 ```
 
 > [!TIP]
@@ -63,6 +63,12 @@ o3s store add ghcr.io/devcontainers/features
 **feature** installs a tool with the hosts and env it needs.
 ```sh
 o3s feature add ghcr.io/hansehart/devcontainer-features/claude-code
+```
+
+**cage** opens the home's workspace in VS Code inside the cage, or a shell inside it.
+```sh
+o3s cage ide
+o3s cage shell
 ```
 
 **update** brings the binary, its images, the stack and your features forward.
