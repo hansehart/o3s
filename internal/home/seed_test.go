@@ -43,7 +43,7 @@ func TestSeedWritesWhatTheHomeLacks(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Seed() again = %v", err)
 	}
-	want := []string{filepath.Join(dir, "o3s.json"), filepath.Join(dir, ".devcontainer", "o3s.code-workspace")}
+	want := []string{filepath.Join(dir, "o3s.json"), filepath.Join(dir, filepath.Base(dir)+".code-workspace")}
 	// Require both files seeded once
 	if diff := cmp.Diff(want, seeded); diff != "" {
 		t.Errorf("Seed() (-want +got):\n%s", diff)

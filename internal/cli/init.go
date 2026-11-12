@@ -11,6 +11,7 @@ import (
 	"github.com/hansehart/o3s/internal/config"
 	"github.com/hansehart/o3s/internal/home"
 	"github.com/hansehart/o3s/internal/host"
+	"github.com/hansehart/o3s/internal/paths"
 	"github.com/hansehart/o3s/internal/secrets"
 )
 
@@ -78,7 +79,7 @@ func prepare(cmd *cobra.Command, dir string) error {
 	if _, err := home.SeedSecrets(path); err != nil {
 		return err
 	}
-	caDir := filepath.Dir(path)
+	caDir := paths.Proxy()
 	made, err := host.CA(caDir)
 	// Hand back a CA that fails to make
 	if err != nil {
@@ -98,6 +99,10 @@ func prepare(cmd *cobra.Command, dir string) error {
 	// Say what the confinement step found or did
 	if note != "" {
 		fmt.Fprintln(out, note)
+	}
+	// Hand back a home's state that stays unwritten
+	if err := host.HomeState(dir); err != nil {
+		return err
 	}
 	// Hand back values compose reads that stay unwritten
 	if err := host.Env(dir); err != nil {
@@ -137,6 +142,6 @@ func nextSteps(out io.Writer, dir string) {
 	w := tabwriter.NewWriter(out, 0, 0, 3, ' ', 0)
 	fmt.Fprintf(w, "  o3s firewall add <host> --port 443\tallow a host\n")
 	fmt.Fprintf(w, "  echo \"$TOKEN\" | o3s secret add <NAME>\tstore a secret\n")
-	fmt.Fprintf(w, "  code %s\topen it, then reopen in the container\n", dir)
+	fmt.Fprintf(w, "  code %s\topen it, then reopen in the container\n", filepath.Join(dir, filepath.Base(dir)+".code-workspace"))
 	_ = w.Flush()
 }
