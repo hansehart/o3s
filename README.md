@@ -139,7 +139,6 @@ Break early, fix earlier, ship earliest. Rootless Docker and minikube run inside
 
 See the [comparison](https://github.com/Hansehart/o3s/wiki/Comparison) for others working on the same problem.
 
-
 Something here you would do differently? Open an issue, send a pull request, or just get in touch. And if one of the others fits you better, take it, as long as you keep both your security and your productivity. You are always welcome back.
 
 ## What the name means
