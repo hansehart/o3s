@@ -5,9 +5,13 @@ import (
 	"errors"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/tailscale/hujson"
+
+	"github.com/hansehart/o3s"
 )
 
 // FileChange is a file of the stack the binary ships in another shape than the home holds it.
@@ -126,4 +130,51 @@ func index(o *hujson.Object, key string) int {
 		}
 	}
 	return -1
+}
+
+// ImageChange is an o3s image whose tag an update moves.
+type ImageChange struct {
+	Name, Old, New string
+}
+
+// Images compares the tags of the o3s images in the home's compose with the ones this binary writes.
+func Images(dir string) ([]ImageChange, error) {
+	have, err := os.ReadFile(filepath.Join(dir, stackDir, "compose.yaml"))
+	// Name nothing for a home without a compose file, which a refresh writes in full
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, nil
+	}
+	// Hand back a compose file that fails to read
+	if err != nil {
+		return nil, err
+	}
+	want, err := o3s.Stack.ReadFile(stackDir + "/compose.yaml")
+	// Hand back a compose file the binary fails to hand over
+	if err != nil {
+		return nil, err
+	}
+	want = pinned(want)
+	var changes []ImageChange
+	// Compare every o3s image's tag
+	for _, image := range images {
+		old, next := tagOf(have, image), tagOf(want, image)
+		// Name an image whose tag moves
+		if old != next {
+			changes = append(changes, ImageChange{Name: path.Base(image), Old: old, New: next})
+		}
+	}
+	return changes, nil
+}
+
+// tagOf reads the tag a compose file gives an image.
+func tagOf(compose []byte, image string) string {
+	// Look at every line for the image
+	for line := range strings.Lines(string(compose)) {
+		_, rest, ok := strings.Cut(line, "image: "+image+":")
+		// Take the tag up to the end of the line
+		if ok {
+			return strings.TrimSpace(rest)
+		}
+	}
+	return ""
 }

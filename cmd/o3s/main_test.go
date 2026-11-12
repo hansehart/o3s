@@ -26,6 +26,11 @@ esac
 exit 0
 `
 
+// fakeDevcontainer stands in for the devcontainer CLI, so a script sees each rebuild an update asks for.
+const fakeDevcontainer = `#!/bin/sh
+echo "$*" >> "$WORK/devcontainer.log"
+`
+
 // tool is a feature that needs a host with a secret, sets env, and keeps its data in a state dir.
 const tool = `{
   "id": "tool",
@@ -71,6 +76,10 @@ func TestScripts(t *testing.T) {
 			}
 			// Hand back a fake engine that stays unwritten
 			if err := os.WriteFile(filepath.Join(bin, "docker"), []byte(fakeDocker), 0o755); err != nil { //nolint:gosec // the scripts run the fake engine
+				return err
+			}
+			// Hand back a fake devcontainer CLI that stays unwritten
+			if err := os.WriteFile(filepath.Join(bin, "devcontainer"), []byte(fakeDevcontainer), 0o755); err != nil { //nolint:gosec // the scripts run the fake CLI
 				return err
 			}
 			env.Setenv("PATH", bin+string(os.PathListSeparator)+env.Getenv("PATH"))

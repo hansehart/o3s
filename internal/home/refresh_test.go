@@ -114,3 +114,32 @@ func TestRefreshKeepsTheHomesFeaturesAndEnv(t *testing.T) {
 		}
 	}
 }
+
+// A binary of a newer release names each o3s image whose tag it moves, and one of the same release names none.
+func TestImagesNamesTheTagsAReleaseMoves(t *testing.T) {
+	home.Version = "0.7.0"
+	t.Cleanup(func() { home.Version = "dev" })
+	dir := anInitializedHome(t)
+
+	same, err := home.Images(dir)
+	// Stop when the images fail to read
+	if err != nil {
+		t.Fatalf("Images() = %v", err)
+	}
+	home.Version = "0.8.0"
+	moved, err := home.Images(dir)
+
+	// Stop when the images fail to read
+	if err != nil {
+		t.Fatalf("Images() = %v", err)
+	}
+	// Require no change from the release that wrote the home
+	if len(same) != 0 {
+		t.Errorf("Images() at the same release = %v, want none", same)
+	}
+	want := []home.ImageChange{{Name: "o3s-base", Old: "0.7.0", New: "0.8.0"}, {Name: "o3s-gateway", Old: "0.7.0", New: "0.8.0"}}
+	// Require both images moved to the new release
+	if diff := cmp.Diff(want, moved); diff != "" {
+		t.Errorf("Images() (-want +got):\n%s", diff)
+	}
+}
