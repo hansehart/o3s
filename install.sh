@@ -18,7 +18,7 @@
 set -eu
 
 repo="hansehart/o3s"
-signer="${repo}/.github/workflows/publish-images.yaml"
+signer="${repo}/.github/workflows/publish.yaml"
 
 # The devcontainer CLI's installer at a pinned tag, and the checksum it has there.
 devcontainers_version="0.90.0"

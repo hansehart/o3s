@@ -25,7 +25,7 @@ const (
 	// repo is where o3s is released.
 	repo = "hansehart/o3s"
 	// signer is the workflow that signs every release's build attestation.
-	signer = repo + "/.github/workflows/publish-images.yaml"
+	signer = repo + "/.github/workflows/publish.yaml"
 )
 
 // ErrChecksum marks a download that differs from its line in the release's checksums.

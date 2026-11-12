@@ -114,7 +114,7 @@ func TestVerifyAsksGhAboutThePublishWorkflow(t *testing.T) {
 		t.Fatalf("Verify() = %v, %v, want verified", ok, err)
 	}
 	calls, _ := os.ReadFile(log)
-	want := "attestation verify /tmp/o3s --repo hansehart/o3s --signer-workflow hansehart/o3s/.github/workflows/publish-images.yaml"
+	want := "attestation verify /tmp/o3s --repo hansehart/o3s --signer-workflow hansehart/o3s/.github/workflows/publish.yaml"
 	// Require gh asked about this repo's publish workflow
 	if !strings.Contains(string(calls), want) {
 		t.Errorf("gh calls lack %q:\n%s", want, calls)

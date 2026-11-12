@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -119,7 +120,7 @@ func TestInstallPutsTheBinaryInPlace(t *testing.T) {
 		t.Errorf("install.sh left no executable o3s in ~/.local/bin\n%s", out)
 	}
 	// Require every line a user needs next
-	for _, want := range []string{"Installed o3s version 0.7.0", "export PATH=", "gh attestation verify", "--signer-workflow hansehart/o3s/.github/workflows/publish-images.yaml", "o3s init"} {
+	for _, want := range []string{"Installed o3s version 0.7.0", "export PATH=", "gh attestation verify", "--signer-workflow hansehart/o3s/.github/workflows/publish.yaml", "o3s init"} {
 		// Report a line the output lacks
 		if !strings.Contains(out, want) {
 			t.Errorf("install.sh output lacks %q:\n%s", want, out)
@@ -184,7 +185,7 @@ func TestInstallVerifiesTheAttestationWithGh(t *testing.T) {
 			t.Errorf("%s: install.sh = %v, installed %v, want ok %v\n%s", tt.name, err, h.installed(), tt.ok, out)
 		}
 		calls, _ := os.ReadFile(filepath.Join(h.home, "gh.log"))
-		want := "attestation verify o3s-linux-amd64 --repo hansehart/o3s --signer-workflow hansehart/o3s/.github/workflows/publish-images.yaml"
+		want := "attestation verify o3s-linux-amd64 --repo hansehart/o3s --signer-workflow hansehart/o3s/.github/workflows/publish.yaml"
 		// Require gh asked about this repo's publish workflow
 		if !strings.Contains(string(calls), want) {
 			t.Errorf("%s: gh calls lack %q:\n%s", tt.name, want, calls)
@@ -205,5 +206,26 @@ func TestInstallNamesTheMissingXz(t *testing.T) {
 	// Require the host left as it was, so one run after installing xz does it all
 	if h.installed() {
 		t.Errorf("install.sh without xz installed o3s anyway")
+	}
+}
+
+// The workflow install.sh accepts as the signer lives in the repo, so a rename fails here before it fails every install.
+func TestTheSignerWorkflowExists(t *testing.T) {
+	data, err := os.ReadFile(script)
+	// Stop when the script fails to read
+	if err != nil {
+		t.Fatalf("ReadFile(install.sh) = %v", err)
+	}
+	m := regexp.MustCompile(`(?m)^signer="\$\{repo\}/(.+)"$`).FindSubmatch(data)
+	// Stop when the script pins no signer
+	if m == nil {
+		t.Fatalf("install.sh pins no signer")
+	}
+
+	_, err = os.Stat(filepath.Join("../..", string(m[1])))
+
+	// Report a signer the repo lacks
+	if err != nil {
+		t.Errorf("signer %s: %v", m[1], err)
 	}
 }
