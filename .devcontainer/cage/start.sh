@@ -9,7 +9,7 @@
 #        open for the dev container to attach to.
 #
 # SEE ALSO
-#        compose.yaml, env.sh
+#        compose.yaml, markers.sh
 
 set -euo pipefail
 
@@ -23,7 +23,7 @@ update-ca-certificates >/dev/null 2>&1 || true
 ip route replace default via "$GATEWAY_IP" || true
 
 # Export the markers the allowlist declares
-bash "$CAGE_DIR/env.sh" || true
+bash "$CAGE_DIR/markers.sh" || true
 
 # Hold the container open for the dev container to attach to
 exec sleep infinity
