@@ -1,0 +1,38 @@
+// NAME
+//        devcontainer.json — the o3s dev container (the "cage")
+//
+// DESCRIPTION
+//        The sandboxed dev container: the o3s-base image plus layered features, the remote
+//        user, and the cage's scripts. Egress is forced through the o3s gateway and secrets
+//        are injected through the proxy.
+//
+// SEE ALSO
+//        compose.yaml, o3s.json, https://containers.dev
+{
+    // Name for the dev container
+    "name": "o3s",
+    // Deal with zombie processes
+    "init": true,
+    // Location of compose file
+    "dockerComposeFile": "compose.yaml",
+    // Which container from compose should be entered
+    "service": "cage",
+    // Software layered onto the o3s image, managed with o3s feature
+    "features": {},
+    // Non-root user VS Code connects as
+    "remoteUser": "ubuntu",
+    // Which folder is the default inside the dev container
+    "workspaceFolder": "/home/ubuntu/o3s",
+    // Prepare this host before every start, with its proxy CA, the cage's confinement and the values compose reads
+    "initializeCommand": "o3s init",
+    // Probe that egress reaches the gateway on every container start
+    "postStartCommand": "bash .devcontainer/cage/check-egress.sh",
+    // VSCode settings
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "remote.autoForwardPorts": false
+            }
+        }
+    }
+}

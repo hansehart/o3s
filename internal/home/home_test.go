@@ -7,12 +7,12 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/tailscale/hujson"
 
-	"github.com/hansehart/o3s"
 	"github.com/hansehart/o3s/internal/config"
 	"github.com/hansehart/o3s/internal/home"
 )
@@ -71,13 +71,13 @@ func TestInitWritesTheSettingsOfANewHome(t *testing.T) {
 func TestInitCopiesTheStack(t *testing.T) {
 	dir := anInitializedHome(t)
 
-	err := fs.WalkDir(o3s.Stack, ".", func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(home.Files, "stack", func(path string, d fs.DirEntry, err error) error {
 		// Hand back a walk that fails
 		if err != nil || d.IsDir() || filepath.Base(path) == "devcontainer.json" {
 			return err
 		}
-		want, _ := o3s.Stack.ReadFile(path)
-		got, readErr := os.ReadFile(filepath.Join(dir, path))
+		want, _ := home.Files.ReadFile(path)
+		got, readErr := os.ReadFile(filepath.Join(dir, ".devcontainer", strings.TrimPrefix(path, "stack/")))
 		// Flag a file the home lacks or holds otherwise
 		if readErr != nil || !bytes.Equal(want, got) {
 			t.Errorf("home file %s = %v, differs from the stack the binary holds", path, readErr)
@@ -94,7 +94,7 @@ func TestInitCopiesTheStack(t *testing.T) {
 // A new home's config keeps the stack's settings and suggests no feature.
 func TestInitStartsTheConfigWithoutFeatures(t *testing.T) {
 	dir := anInitializedHome(t)
-	source, _ := o3s.Stack.ReadFile(".devcontainer/devcontainer.json")
+	source, _ := home.Files.ReadFile("stack/devcontainer.json")
 
 	written, err := os.ReadFile(filepath.Join(dir, ".devcontainer", "devcontainer.json"))
 
@@ -162,5 +162,17 @@ func TestInitPinsTheImagesToTheRelease(t *testing.T) {
 				t.Errorf("version %s: compose lacks %s%s", tt.version, image, tt.tag)
 			}
 		}
+	}
+}
+
+// A home holds the stack alone, while the templates the binary seeds from stay in the binary.
+func TestInitLeavesTheTemplatesInTheBinary(t *testing.T) {
+	dir := anInitializedHome(t)
+
+	_, err := os.Stat(filepath.Join(dir, ".devcontainer", "templates"))
+
+	// Require the home without a copy of the templates
+	if !errors.Is(err, fs.ErrNotExist) {
+		t.Errorf("home holds .devcontainer/templates (%v), want it absent", err)
 	}
 }

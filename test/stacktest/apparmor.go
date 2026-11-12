@@ -43,7 +43,7 @@ func AHostThatLostTheProfile(tb testing.TB) {
 		tb.Fatalf("Setup: %v", err)
 	}
 	// Stop when the kernel keeps the profile
-	if _, err := run(tb.Context(), tb, "sudo", "apparmor_parser", "-R", filepath.Join(Repo(tb), ".devcontainer/apparmor.conf")); err != nil {
+	if _, err := run(tb.Context(), tb, "sudo", "apparmor_parser", "-R", filepath.Join(aHome(tb), ".devcontainer", "apparmor.conf")); err != nil {
 		tb.Fatalf("Setup: %v", err)
 	}
 	// Hold the arranged state to what it claims, so the test reads a kernel that lost the profile

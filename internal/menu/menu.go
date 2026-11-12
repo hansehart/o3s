@@ -356,7 +356,7 @@ func featurePlan(h Home, a Answers, action string) []Command {
 		if a.get("apply") != yes {
 			return nil
 		}
-		return []Command{{Args: []string{"feature", "rm", a.get("feature")}}}
+		return []Command{{Args: []string{"feature", "rm", a.get("feature"), "--no-preview"}}}
 	}
 	// Name that no store is there to choose
 	if !a.has("store") {
@@ -382,10 +382,10 @@ func featurePlan(h Home, a Answers, action string) []Command {
 		value := a.get("value:" + name)
 		// Leave a skipped secret waiting
 		if value != "" {
-			cmds = append(cmds, Command{Args: []string{"secret", "add", name}, Stdin: &value})
+			cmds = append(cmds, Command{Args: []string{"secret", "add", name, "--no-bind-hint"}, Stdin: &value})
 		}
 	}
-	return append(cmds, Command{Args: []string{"feature", "add", id}})
+	return append(cmds, Command{Args: []string{"feature", "add", id, "--no-preview"}})
 }
 
 // apply asks to apply a change, showing it above the question.

@@ -39,7 +39,7 @@ func ProxyReads(tb testing.TB, policy, secrets string) (Parsed, error) {
 			tb.Fatalf("Setup: write %s: %v", name, err)
 		}
 	}
-	addon := filepath.Join(Repo(tb), ".devcontainer/proxy/inject.py")
+	addon := filepath.Join(Repo(tb), "internal", "home", "stack", "proxy", "inject.py")
 	out, err := run(tb.Context(), tb, "docker", "run", "--rm",
 		"--user", fmt.Sprintf("%d:%d", os.Getuid(), os.Getgid()),
 		"--entrypoint", "python3",
@@ -64,7 +64,6 @@ func ProxyReads(tb testing.TB, policy, secrets string) (Parsed, error) {
 // proxyImage reads the image the stack runs its proxy from.
 func proxyImage(tb testing.TB) string {
 	tb.Helper()
-	anEnv(tb)
 	out, err := compose(tb.Context(), tb, "config", "--format", "json")
 	// Stop when the stack's model stays unread
 	if err != nil {

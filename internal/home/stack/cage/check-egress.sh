@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # NAME
-#        post-start.sh — probe that the egress policy holds
+#        check-egress.sh — probe that the egress policy holds
 #
 # DESCRIPTION
 #        Reports on every container start whether a non-allow-listed address stays refused.

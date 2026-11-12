@@ -44,7 +44,7 @@ from mitmproxy import http, tls
 from mitmproxy.proxy import server_hooks
 
 CONFIG_FILE = os.environ.get("O3S_CONFIG_FILE", "/etc/o3s/o3s.json")
-SECRETS_FILE = os.environ.get("O3S_SECRETS_FILE", "/config/secrets.env")
+SECRETS_FILE = os.environ.get("O3S_SECRETS_FILE", "/secrets/secrets.env")
 
 # Where in a request a host may carry its credential, and what it carries there unless it says so.
 SITES = frozenset({"header", "query", "body"})

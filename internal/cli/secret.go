@@ -24,7 +24,8 @@ func newSecret() *cobra.Command {
 
 // newSecretAdd builds the command that stores a secret's value, read from stdin.
 func newSecretAdd() *cobra.Command {
-	return &cobra.Command{
+	var noBindHint bool
+	cmd := &cobra.Command{
 		Use:   "add <NAME>",
 		Short: "Store a secret's value, read from stdin",
 		Args:  usage(cobra.ExactArgs(1)),
@@ -60,13 +61,16 @@ func newSecretAdd() *cobra.Command {
 				fmt.Fprintf(out, "%s\n  ~ value replaced\n", name)
 			}
 			fmt.Fprintf(out, "Stored %s\n", name)
-			// Point a name no host carries at the command that binds it
-			if len(hostsNaming(name)) == 0 {
+			// Point a name no host carries at the command that binds it, unless a feature binds it next
+			if !noBindHint && len(hostsNaming(name)) == 0 {
 				fmt.Fprintf(out, "Bind it to a host with: o3s firewall add <host> --secret %s\n", name)
 			}
 			return nil
 		},
 	}
+	cmd.Flags().BoolVar(&noBindHint, "no-bind-hint", false, "leave out the hint for a secret a feature binds next")
+	_ = cmd.Flags().MarkHidden("no-bind-hint")
+	return cmd
 }
 
 // newSecretRm builds the command that removes a secret's value.

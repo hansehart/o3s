@@ -1,5 +1,5 @@
-// Package stack drives the containers an o3s home runs.
-package stack
+// Package restart makes the containers an o3s home runs read its settings afresh.
+package restart
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"strings"
 )
 
-// Restart makes the home's running stack read its settings afresh, and reports whether it runs.
-func Restart(ctx context.Context, home string) (bool, error) {
+// Stack makes the home's running stack read its settings afresh, and reports whether it runs.
+func Stack(ctx context.Context, home string) (bool, error) {
 	project := "label=com.docker.compose.project.working_dir=" + filepath.Join(home, ".devcontainer")
 	var ids []string
 	// Find the gateway first and the proxy second, the order they restart in

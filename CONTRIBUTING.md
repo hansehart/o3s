@@ -3,7 +3,7 @@
 ## Changes
 
 - **Branches** ideally start from an issue, carry one change each, and land on main through a pull request as one squashed commit.
-- **Commits** start with the kind of change and a scope from `.commitlintrc.json`, followed by a short summary.
+- **Commits** start with the kind of change and a scope from `.github/tools/commitlint.json`, followed by a short summary.
 - **Descriptions** of pull requests and issues stay slim and minimal, about 2–3 sentences on average.
 - **Updates** of dependencies arrive from the Renovate bot, one pull request per update.
 

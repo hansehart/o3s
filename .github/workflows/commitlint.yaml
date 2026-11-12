@@ -22,10 +22,8 @@ jobs:
       # install the commit-message linter and its ruleset at the versions the lockfile pins
       - run: npm ci --prefix .github/tools --ignore-scripts --no-audit --no-fund
 
-      # lint only the commits this pull request adds, finding the ruleset beside the linter
-      - env:
-          NODE_PATH: .github/tools/node_modules
-        run: >
-          .github/tools/node_modules/.bin/commitlint --config .commitlintrc.json --verbose
+      # lint only the commits this pull request adds, with the rules kept beside the linter
+      - run: >
+          .github/tools/node_modules/.bin/commitlint --config .github/tools/commitlint.json --verbose
           --from ${{ github.event.pull_request.base.sha }}
           --to ${{ github.event.pull_request.head.sha }}

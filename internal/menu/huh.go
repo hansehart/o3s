@@ -58,17 +58,11 @@ func (h Huh) Ask(q Question) ([]string, error) {
 		return nil, err
 	}
 	answer := answerOf(q.Kind, single, multi, ok)
-	shown := strings.Join(answer, ", ")
-	// Keep a hidden value hidden on screen
-	if q.Kind == Hidden {
-		shown = strings.Repeat("*", 4)
+	// Take the default where the user left an input with one empty
+	if q.Kind == Input && len(q.Default) > 0 && answer[0] == "" {
+		answer = q.Default
 	}
-	label := q.Title
-	// Set the answer apart from a title that asks no question
-	if !strings.HasSuffix(label, "?") {
-		label += ":"
-	}
-	fmt.Fprintf(h.Out, "> %s %s\n", label, shown)
+	fmt.Fprintln(h.Out, collapse(q, answer))
 	return answer, nil
 }
 
@@ -79,6 +73,11 @@ func field(q Question, single *string, multi *[]string, ok *bool) huh.Field {
 	case Multi:
 		return huh.NewMultiSelect[string]().Title(q.Title).Options(options(q, *multi)...).Value(multi)
 	case Input:
+		// Ask with the default in brackets, the field empty so a plain Enter keeps it
+		if len(q.Default) > 0 {
+			*single = ""
+			return huh.NewInput().Title(q.Title + " [" + q.Default[0] + "]").Placeholder(q.Default[0]).Value(single)
+		}
 		return huh.NewInput().Title(q.Title).Value(single)
 	case Hidden:
 		return huh.NewInput().Title(q.Title).EchoMode(huh.EchoModePassword).Value(single)

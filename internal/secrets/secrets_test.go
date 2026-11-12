@@ -11,7 +11,7 @@ import (
 	"github.com/hansehart/o3s/internal/secrets"
 )
 
-// header is the comment block the seeded file opens with.
+// header is the comment block a secrets file opens with.
 const header = "# NAME\n#        secrets.env — real API tokens for the egress proxy\n"
 
 // aSecretsFile hands a test a secrets file holding the given content, and its path.
@@ -58,8 +58,8 @@ func TestValueReadsLikeTheProxy(t *testing.T) {
 	}
 }
 
-// Setting a name fills the empty slot the start leaves, and keeps every other line as it was.
-func TestSetFillsTheEmptySlot(t *testing.T) {
+// Setting a name fills a line that holds it without a value, and keeps every other line as it was.
+func TestSetFillsALineWithoutAValue(t *testing.T) {
 	path := aSecretsFile(t, header+"EXAMPLE_TOKEN=\n")
 	s := load(t, path)
 
@@ -69,11 +69,11 @@ func TestSetFillsTheEmptySlot(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Set(EXAMPLE_TOKEN) = %v", err)
 	}
-	// Require an empty slot to count as no earlier value
+	// Require a line without a value to count as no earlier value
 	if replaced {
-		t.Errorf("Set(EXAMPLE_TOKEN) replaced = true, want false for an empty slot")
+		t.Errorf("Set(EXAMPLE_TOKEN) replaced = true, want false for a line without a value")
 	}
-	// Require the slot filled and the header kept
+	// Require the line filled and the header kept
 	if diff := cmp.Diff(header+"EXAMPLE_TOKEN=s3cr3t\n", s.String()); diff != "" {
 		t.Errorf("Set(EXAMPLE_TOKEN) file (-want +got):\n%s", diff)
 	}

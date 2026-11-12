@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	// domainName matches a lowercase domain, optionally led by a wildcard label.
-	domainName = regexp.MustCompile(`^(\*\.)?[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$`)
+	// domainName matches a lowercase domain, optionally led by a wildcard label, whose last label holds a letter as RFC 3696 asks.
+	domainName = regexp.MustCompile(`^(\*\.)?([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)*([a-z0-9][a-z0-9-]*)?[a-z]([a-z0-9-]*[a-z0-9])?$`)
 	// envName matches an uppercase environment variable name.
 	envName = regexp.MustCompile(`^[A-Z_][A-Z0-9_]*$`)
 	// injectSites lists where the proxy may place a secret in a request.

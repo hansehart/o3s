@@ -9,14 +9,13 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema/v6"
 
-	"github.com/hansehart/o3s"
 	"github.com/hansehart/o3s/internal/config"
 )
 
 // theShippedSchema compiles the schema every home receives.
 func theShippedSchema(t *testing.T) *jsonschema.Schema {
 	t.Helper()
-	data, err := o3s.Stack.ReadFile(".devcontainer/o3s.schema.json")
+	data, err := os.ReadFile("../home/stack/o3s.schema.json")
 	// Stop when the stack ships no schema
 	if err != nil {
 		t.Fatalf("Setup: read the shipped schema: %v", err)
@@ -78,21 +77,23 @@ func TestTheSchemaAcceptsWhatO3sWrites(t *testing.T) {
 func TestTheSchemaAgreesWithO3s(t *testing.T) {
 	schema := theShippedSchema(t)
 	changes := map[string]config.Change{
-		"domain":               {Name: "example.com"},
-		"wildcard":             {Name: "*.example.org"},
-		"address":              {Name: "192.0.2.1"},
-		"range":                {Name: "198.51.100.0/24"},
-		"uppercase host":       {Name: "Example.com"},
-		"wildcard in a label":  {Name: "api.*.example.com"},
-		"IPv6 address":         {Name: "::1"},
-		"range past 32 bits":   {Name: "192.0.2.0/33"},
-		"octet past 255":       {Name: "256.0.0.1"},
-		"port zero":            {Name: "example.com", Ports: []int{0}},
-		"port past the range":  {Name: "example.com", Ports: []int{65536}},
-		"lowercase secret":     {Name: "api.example.com", Secret: "example_token"},
-		"unknown inject site":  {Name: "api.example.com", Secret: "EXAMPLE_TOKEN", Inject: []string{"cookie"}},
-		"inject with a secret": {Name: "api.example.com", Secret: "EXAMPLE_TOKEN", Inject: []string{"header", "body"}},
-		"inject alone":         {Name: "api.example.com", Inject: []string{"header"}},
+		"domain":                {Name: "example.com"},
+		"wildcard":              {Name: "*.example.org"},
+		"address":               {Name: "192.0.2.1"},
+		"range":                 {Name: "198.51.100.0/24"},
+		"uppercase host":        {Name: "Example.com"},
+		"wildcard in a label":   {Name: "api.*.example.com"},
+		"IPv6 address":          {Name: "::1"},
+		"range past 32 bits":    {Name: "192.0.2.0/33"},
+		"octet past 255":        {Name: "256.0.0.1"},
+		"digits as top level":   {Name: "example.123"},
+		"digits leading a name": {Name: "1example.com"},
+		"port zero":             {Name: "example.com", Ports: []int{0}},
+		"port past the range":   {Name: "example.com", Ports: []int{65536}},
+		"lowercase secret":      {Name: "api.example.com", Secret: "example_token"},
+		"unknown inject site":   {Name: "api.example.com", Secret: "EXAMPLE_TOKEN", Inject: []string{"cookie"}},
+		"inject with a secret":  {Name: "api.example.com", Secret: "EXAMPLE_TOKEN", Inject: []string{"header", "body"}},
+		"inject alone":          {Name: "api.example.com", Inject: []string{"header"}},
 	}
 	// Hand every change to o3s and to the schema
 	for name, ch := range changes {

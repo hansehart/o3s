@@ -26,12 +26,6 @@
       "semanticCommitType": "build"
     },
     {
-      "description": "Group my own devcontainer features so their releases land in a single pull request.",
-      "matchManagers": ["devcontainer"],
-      "matchPackageNames": ["ghcr.io/hansehart/devcontainer-features/**"],
-      "groupName": "Hansehart Devcontainer Features"
-    },
-    {
       "description": "Images tracking a rolling tag do not need a digest pin.",
       "matchPackageNames": [
         "ghcr.io/hansehart/o3s-base",

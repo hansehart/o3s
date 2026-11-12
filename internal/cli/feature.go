@@ -23,7 +23,8 @@ func newFeature() *cobra.Command {
 
 // newFeatureAdd builds the command that adds a feature with the hosts and env it needs.
 func newFeatureAdd() *cobra.Command {
-	return &cobra.Command{
+	var noPreview bool
+	cmd := &cobra.Command{
 		Use:   "add <id>",
 		Short: "Add a feature with the hosts and env it needs",
 		Args:  usage(cobra.ExactArgs(1)),
@@ -67,9 +68,12 @@ func newFeatureAdd() *cobra.Command {
 			}
 			out := cmd.OutOrStdout()
 			lines, waiting := addLines(s, store)
-			// Show what the feature brings
-			for _, line := range lines {
-				fmt.Fprintln(out, line)
+			// Show what the feature brings, unless the menu showed it already
+			if !noPreview {
+				// Print every line of the change
+				for _, line := range lines {
+					fmt.Fprintln(out, line)
+				}
 			}
 			fmt.Fprintf(out, "Added %s\n", pkg)
 			// Name how to give each waiting secret its value
@@ -79,7 +83,7 @@ func newFeatureAdd() *cobra.Command {
 			// Restart the stack where the allowlist changed
 			if len(s.Hosts) > 0 {
 				// Hand back a stack that fails to restart
-				if err := restart(cmd, dir); err != nil {
+				if err := restartStack(cmd, dir); err != nil {
 					return err
 				}
 			}
@@ -87,11 +91,14 @@ func newFeatureAdd() *cobra.Command {
 			return nil
 		},
 	}
+	previewFlag(cmd, &noPreview)
+	return cmd
 }
 
 // newFeatureRm builds the command that removes a feature with its env and the hosts it alone needs.
 func newFeatureRm() *cobra.Command {
-	return &cobra.Command{
+	var noPreview bool
+	cmd := &cobra.Command{
 		Use:   "rm <id>",
 		Short: "Remove a feature with its env and the hosts it alone needs",
 		Args:  usage(cobra.ExactArgs(1)),
@@ -127,18 +134,23 @@ func newFeatureRm() *cobra.Command {
 				return err
 			}
 			out := cmd.OutOrStdout()
-			// Show what leaves with the feature
-			for _, line := range rmLines(pkg, r) {
-				fmt.Fprintln(out, line)
+			// Show what leaves with the feature, unless the menu showed it already
+			if !noPreview {
+				// Print every line of the change
+				for _, line := range rmLines(pkg, r) {
+					fmt.Fprintln(out, line)
+				}
 			}
 			fmt.Fprintf(out, "Removed %s\n", pkg)
 			// Restart the stack where the allowlist changed
 			if len(r.hosts) > 0 {
-				return restart(cmd, dir)
+				return restartStack(cmd, dir)
 			}
 			return nil
 		},
 	}
+	previewFlag(cmd, &noPreview)
+	return cmd
 }
 
 // newFeatureLs builds the command that lists every feature with its tag and the hosts it needs.
@@ -244,6 +256,12 @@ func rmLines(pkg string, r removalOf) []string {
 		lines = append(lines, fmt.Sprintf("  - %s=%s", e.Name, e.Value))
 	}
 	return lines
+}
+
+// previewFlag adds the hidden flag the menu passes once it has shown a feature's change.
+func previewFlag(cmd *cobra.Command, noPreview *bool) {
+	cmd.Flags().BoolVar(noPreview, "no-preview", false, "leave out the change the menu showed already")
+	_ = cmd.Flags().MarkHidden("no-preview")
 }
 
 // loadHome reads the settings and the dev container config of the home the command runs in.

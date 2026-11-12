@@ -1,3 +1,10 @@
+# The user's own home folder holds the host's secrets and CA, which the cage would see, so it is turned away
+cd $WORK
+! exec o3s init
+stderr 'needs a folder of its own'
+! exists $WORK/o3s.json
+! exists $WORK/.devcontainer
+
 # An empty folder becomes a home with the settings of a new home, the stack, and a prepared host
 mkdir home
 cd home
@@ -11,9 +18,11 @@ stdout '^Next steps:$'
 cmp o3s.json $WORK/want.json
 exists .devcontainer/devcontainer.json
 exists .devcontainer/compose.yaml
-exists .devcontainer/lifecycle/post-start.sh
+exists .devcontainer/cage/start.sh
+exists .devcontainer/cage/markers.sh
+exists .devcontainer/cage/check-egress.sh
+! exists .devcontainer/lifecycle
 ! exists .devcontainer/compose.dev.yaml
-! exists .devcontainer/lifecycle/initialize.sh
 exists .devcontainer/.env
 grep '^O3S_PROXY_DIR='$WORK'/.local/state/o3s/proxy$' .devcontainer/.env
 grep '^O3S_SECRETS_DIR='$WORK'/.config/o3s$' .devcontainer/.env
@@ -57,6 +66,12 @@ cp $WORK/edited.yaml .devcontainer/compose.yaml
 exec o3s init
 stdout '^The stack differs from this o3s, run o3s update$'
 cmp .devcontainer/compose.yaml $WORK/edited.yaml
+
+# A second home on this machine names the first, since o3s runs one home per machine for now
+mkdir $WORK/other
+cd $WORK/other
+exec o3s init
+stdout '^⚠ '$WORK'/home is already an o3s home, and o3s runs one home per machine for now$'
 
 -- edited.yaml --
 services: {}

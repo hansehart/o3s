@@ -1,9 +1,0 @@
-{
-  "recommendations": [
-    "google.colab",
-    "ms-toolsai.datawrangler",
-    "ms-toolsai.jupyter",
-    "ms-toolsai.prompty",
-    "ms-toolsai.tensorboard"
-  ]
-}
