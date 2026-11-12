@@ -21,7 +21,7 @@ We created o3s to keep pace: trusted environments, several projects at once, and
 
 ## Getting started
 
-**Prerequisites:** Linux on amd64 or arm64, [Docker](https://docs.docker.com/engine/install/) with Compose 5.6.1 or later, [VS Code](https://code.visualstudio.com/download) with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers), and `tar` and `xz`.
+**Prerequisites:** Linux on amd64 or arm64, [Docker](https://docs.docker.com/engine/install/) with Compose, [VS Code](https://code.visualstudio.com/download) with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers), and `tar` and `xz`.
 
 ```sh
 curl -fsSL https://github.com/hansehart/o3s/releases/latest/download/install.sh | sh
