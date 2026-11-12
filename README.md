@@ -19,32 +19,6 @@ If you are not willing to trade security for productivity, o3s is a match. Let a
 
 We created o3s to keep pace: trusted environments, several projects at once, and several features inside each. AI will not be the death of good engineering. It is the golden era of agentic software engineers. This is how we build with it and still stand behind every line that ships.
 
-## Getting started
-
-**Prerequisites:** Linux on amd64 or arm64, [Docker](https://docs.docker.com/engine/install/) with Compose, [VS Code](https://code.visualstudio.com/download) with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers), and tar and xz.
-
-1. Install o3s.
-   ```sh
-   curl -fsSL https://github.com/hansehart/o3s/releases/latest/download/install.sh | sh
-   ```
-2. Create your home.
-   ```sh
-   mkdir ~/o3s && cd ~/o3s && o3s init
-   ```
-3. Open it in the cage.
-   ```sh
-   # VS Code
-   o3s cage ide
-   ```
-   or
-   ```sh
-   # Terminal
-   o3s cage shell
-   ```
-
-> [!WARNING]
-> Only `~/features`, `~/o3s`, and `~/projects` survive a rebuild. Keep your work in `~/projects`.
-
 ## Commands
 
 Run `o3s` alone for a menu that leads through each of them.
@@ -79,6 +53,32 @@ o3s cage shell
 ```sh
 o3s update
 ```
+
+## Getting started
+
+**Prerequisites:** Linux on amd64 or arm64, [Docker](https://docs.docker.com/engine/install/) with Compose, [VS Code](https://code.visualstudio.com/download) with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers), and tar and xz.
+
+1. Install o3s.
+   ```sh
+   curl -fsSL https://github.com/hansehart/o3s/releases/latest/download/install.sh | sh
+   ```
+2. Create your home.
+   ```sh
+   mkdir ~/o3s && cd ~/o3s && o3s init
+   ```
+3. Open it in the cage.
+   ```sh
+   # VS Code
+   o3s cage ide
+   ```
+   or
+   ```sh
+   # Terminal
+   o3s cage shell
+   ```
+
+> [!WARNING]
+> Only `~/features`, `~/o3s`, and `~/projects` survive a rebuild in the cage. Keep your work in `~/projects`, where VS Code and the shell open.
 
 ## What you get
 
