@@ -7,7 +7,7 @@
 #        and attaches them to the release that release-please creates with its notes.
 #
 # SEE ALSO
-#        .github/workflows/publish.yaml, release-please-config.json
+#        .github/workflows/publish.yaml, .github/release-please/config.json
 version: 2
 
 builds:
