@@ -15,8 +15,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: o3s-base
-            context: images/base
+          - name: o3s-cage
+            context: images/cage
           - name: o3s-gateway
             context: images/gateway
     steps:

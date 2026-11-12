@@ -26,8 +26,8 @@ x-gateway-ip: &gateway_ip 10.10.0.2
 services:
   # The dev container the work happens in, reaching the internet through the gateway alone.
   cage:
-    image: ghcr.io/hansehart/o3s-base:latest
-    # Dev Containers rebuilds this into a local vsc-o3s-<hash> image so only pull the base when absent
+    image: ghcr.io/hansehart/o3s-cage:latest
+    # Dev Containers rebuilds this into a local vsc-o3s-<hash> image so only pull the cage image when absent
     pull_policy: missing
     environment:
       # Egress firewall gateway

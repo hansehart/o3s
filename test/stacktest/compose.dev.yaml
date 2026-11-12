@@ -3,7 +3,7 @@
 #
 # DESCRIPTION
 #        Remaps every name, network and address the stack claims and builds the gateway
-#        and base images from this checkout's Dockerfiles, so the o3s under development
+#        and cage images from this checkout's Dockerfiles, so the o3s under development
 #        runs beside the o3s in daily use.
 #
 # USAGE
@@ -24,10 +24,10 @@ x-gateway-ip: &gateway_ip 10.11.0.2
 
 services:
   cage:
-    # Build the base image from this checkout, which Dev Containers then layers features onto
+    # Build the cage image from this checkout, which Dev Containers then layers features onto
     build:
-      context: ${O3S_IMAGES:?name the checkout's images folder}/base
-    image: o3s-base:dev
+      context: ${O3S_IMAGES:?name the checkout's images folder}/cage
+    image: o3s-cage:dev
     pull_policy: build
     environment:
       GATEWAY_IP: *gateway_ip
