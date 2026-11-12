@@ -10,8 +10,6 @@ import (
 	"strings"
 
 	"github.com/tailscale/hujson"
-
-	"github.com/hansehart/o3s"
 )
 
 // FileChange is a file of the stack the binary ships in another shape than the home holds it.
@@ -148,7 +146,7 @@ func Images(dir string) ([]ImageChange, error) {
 	if err != nil {
 		return nil, err
 	}
-	want, err := o3s.Stack.ReadFile(stackDir + "/compose.yaml")
+	want, err := files.ReadFile(source + "/compose.yaml")
 	// Hand back a compose file the binary fails to hand over
 	if err != nil {
 		return nil, err

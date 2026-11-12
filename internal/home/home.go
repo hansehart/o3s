@@ -13,7 +13,6 @@ import (
 
 	"github.com/tailscale/hujson"
 
-	"github.com/hansehart/o3s"
 	"github.com/hansehart/o3s/internal/atomicfile"
 	"github.com/hansehart/o3s/internal/config"
 	"github.com/hansehart/o3s/internal/release"
@@ -22,7 +21,7 @@ import (
 // ErrExists marks a folder that already holds a home.
 var ErrExists = errors.New("already belongs to an o3s home")
 
-// stackDir is where a home keeps its stack.
+// stackDir is where a home keeps its stack, the dev container tooling's own folder.
 const stackDir = ".devcontainer"
 
 // Version is the version of the running binary, whose release tag the stack's own images take.
@@ -75,19 +74,15 @@ type file struct {
 	data []byte
 }
 
-// stack hands back every file of the stack a home holds, its config without features and its templates left in the binary.
+// stack hands back every file of the stack a home holds, its config without features.
 func stack() ([]file, error) {
-	var files []file
-	err := fs.WalkDir(o3s.Stack, stackDir, func(path string, d fs.DirEntry, err error) error {
-		// Leave the templates in the binary, which seeds a home's files from them alone
-		if err == nil && d.IsDir() && d.Name() == "templates" {
-			return fs.SkipDir
-		}
+	var stack []file
+	err := fs.WalkDir(files, source, func(path string, d fs.DirEntry, err error) error {
 		// Hand back a walk that fails, and take folders as they come with their files
 		if err != nil || d.IsDir() {
 			return err
 		}
-		data, err := o3s.Stack.ReadFile(path)
+		data, err := files.ReadFile(path)
 		// Hand back a file the binary fails to hand over
 		if err != nil {
 			return err
@@ -105,10 +100,10 @@ func stack() ([]file, error) {
 		if d.Name() == "compose.yaml" {
 			data = pinned(data)
 		}
-		files = append(files, file{path: strings.TrimPrefix(path, stackDir+"/"), data: data})
+		stack = append(stack, file{path: strings.TrimPrefix(path, source+"/"), data: data})
 		return nil
 	})
-	return files, err
+	return stack, err
 }
 
 // hooked names the release binary's own path as the start hook, so the editor finds it whatever its PATH holds.
@@ -149,7 +144,7 @@ func Seed(dir string) ([]string, error) {
 	workspace := filepath.Join(dir, filepath.Base(dir)+".code-workspace")
 	// Start the workspace from its template where the home holds none
 	if _, err := os.Stat(workspace); errors.Is(err, fs.ErrNotExist) {
-		data, err := o3s.Stack.ReadFile(stackDir + "/templates/o3s.code-workspace")
+		data, err := files.ReadFile("templates/o3s.code-workspace")
 		// Hand back a template the binary fails to hand over
 		if err != nil {
 			return written, err
@@ -205,7 +200,7 @@ func SeedSecrets(path string) (bool, error) {
 	if _, err := os.Stat(path); err == nil {
 		return false, nil
 	}
-	data, err := o3s.Stack.ReadFile(stackDir + "/templates/secrets.env")
+	data, err := files.ReadFile("templates/secrets.env")
 	// Hand back a template the binary fails to hand over
 	if err != nil {
 		return false, err
