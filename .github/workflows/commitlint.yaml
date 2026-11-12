@@ -19,11 +19,11 @@ jobs:
         with:
           node-version: 22
 
-      # install the commit-message linter and its ruleset
-      - run: npm install --no-save @commitlint/cli@21 @commitlint/config-conventional@21
+      # install the commit-message linter and its ruleset at the versions the lockfile pins
+      - run: npm ci --prefix .github/tools --ignore-scripts --no-audit --no-fund
 
       # lint only the commits this pull request adds
       - run: >
-          npx commitlint --config .commitlintrc.json --verbose
+          .github/tools/node_modules/.bin/commitlint --config .commitlintrc.json --verbose
           --from ${{ github.event.pull_request.base.sha }}
           --to ${{ github.event.pull_request.head.sha }}

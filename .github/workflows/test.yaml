@@ -41,9 +41,11 @@ jobs:
       - name: Run the integration tests
         run: go test -tags integration -count=1 -v ./test/integration/...
 
-      # install the CLI this host's editor raises the stack with
+      # install the CLI this host's editor raises the stack with, at the version the lockfile pins
       - name: Install the dev container CLI
-        run: npm install -g @devcontainers/cli
+        run: |
+          npm ci --prefix .github/tools --ignore-scripts --no-audit --no-fund
+          echo "$GITHUB_WORKSPACE/.github/tools/node_modules/.bin" >> "$GITHUB_PATH"
 
       # run the tests that raise the whole stack on this host, the way the editor raises it
       - name: Run the e2e tests
