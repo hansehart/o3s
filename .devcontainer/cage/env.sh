@@ -15,7 +15,8 @@ set -euo pipefail
 
 die() { echo "[o3s] ERROR: $*" >&2; exit 1; }
 
-# Read the allowlist from the repo mount and expose the markers where every shell picks them up
+# Read the allowlist from the home mount and expose the markers where every shell picks them up,
+# both paths open to a test that points them elsewhere
 CONFIG_FILE="${O3S_CONFIG_FILE:-/home/ubuntu/o3s/o3s.json}"
 PROFILE_FILE="${O3S_PROFILE_FILE:-/etc/profile.d/o3s-secrets.sh}"
 

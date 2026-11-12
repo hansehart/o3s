@@ -44,15 +44,15 @@ func TestTheProxyReadsTheHomesPolicy(t *testing.T) {
 	}
 }
 
-// The proxy injects the value o3s stores, in a file that keeps the empty slot the start leaves.
+// The proxy injects the value o3s stores, in a file that held the name without a value.
 func TestTheProxyReadsTheSecretsO3sStores(t *testing.T) {
 	path := filepath.Join(t.TempDir(), secrets.File)
-	// Stop when the seeded file stays unwritten
+	// Stop when the secrets file stays unwritten
 	if err := os.WriteFile(path, []byte("# real API tokens for the egress proxy\nEXAMPLE_TOKEN=\n"), 0o600); err != nil {
 		t.Fatalf("Setup: %v", err)
 	}
 	store, err := secrets.Load(path)
-	// Stop when the seeded file stays unread
+	// Stop when the secrets file stays unread
 	if err != nil {
 		t.Fatalf("Setup: %v", err)
 	}

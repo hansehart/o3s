@@ -7,9 +7,9 @@
 #        runs beside the o3s in daily use.
 #
 # USAGE
-#        Name this file after compose.yaml in devcontainer.json's dockerComposeFile and hand
-#        its gateway address to the docker-in-docker feature as DNS, then run the Dev Containers
-#        extension command "Dev Containers: Rebuild and Reopen in Container".
+#        The stack tests layer this file over compose.yaml, so every image comes from the
+#        checkout under test. By hand, raise the same pair from .devcontainer/ with
+#        docker compose -f compose.yaml -f compose.dev.yaml up --build.
 #
 # SEE ALSO
 #        compose.yaml, devcontainer.json
@@ -17,7 +17,7 @@
 # Stack name, so volumes land under o3s-dev_* and stay separate
 name: o3s-dev
 
-# Cage network identity, a subnet away from the daily stack
+# Cage network identity, a subnet away from the o3s in daily use
 x-cage-subnet: &cage_subnet 10.11.0.0/24
 x-gateway-ip: &gateway_ip 10.11.0.2
 

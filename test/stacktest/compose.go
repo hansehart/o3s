@@ -31,7 +31,7 @@ func Repo(tb testing.TB) string {
 	}
 }
 
-// compose runs docker compose on the daily stack with the dev overlay, and hands back what it printed.
+// compose runs docker compose on the shipped stack with the dev overlay, and hands back what it printed.
 func compose(ctx context.Context, tb testing.TB, args ...string) (string, error) {
 	tb.Helper()
 	repo := Repo(tb)

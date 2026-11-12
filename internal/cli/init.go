@@ -113,6 +113,10 @@ func prepare(cmd *cobra.Command, dir string) error {
 	if err := host.HomeState(dir); err != nil {
 		return err
 	}
+	// Name every other home, since this release runs one home per machine
+	for _, other := range host.OtherHomes(dir) {
+		fmt.Fprintf(out, "⚠ %s is already an o3s home, and o3s runs one home per machine for now\n", other)
+	}
 	// Hand back values compose reads that stay unwritten
 	if err := host.Env(dir); err != nil {
 		return err

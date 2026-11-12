@@ -20,7 +20,6 @@ exists .devcontainer/devcontainer.json
 exists .devcontainer/compose.yaml
 exists .devcontainer/lifecycle/post-start.sh
 ! exists .devcontainer/compose.dev.yaml
-! exists .devcontainer/lifecycle/initialize.sh
 exists .devcontainer/.env
 grep '^O3S_PROXY_DIR='$WORK'/.local/state/o3s/proxy$' .devcontainer/.env
 grep '^O3S_SECRETS_DIR='$WORK'/.config/o3s$' .devcontainer/.env
@@ -64,6 +63,12 @@ cp $WORK/edited.yaml .devcontainer/compose.yaml
 exec o3s init
 stdout '^The stack differs from this o3s, run o3s update$'
 cmp .devcontainer/compose.yaml $WORK/edited.yaml
+
+# A second home on this machine names the first, since o3s runs one home per machine for now
+mkdir $WORK/other
+cd $WORK/other
+exec o3s init
+stdout '^⚠ '$WORK'/home is already an o3s home, and o3s runs one home per machine for now$'
 
 -- edited.yaml --
 services: {}

@@ -49,4 +49,8 @@ jobs:
 
       # run the tests that raise the whole stack on this host, the way the editor raises it
       - name: Run the e2e tests
+        env:
+          # let bake read the Dockerfile the CLI writes outside the build context, which Compose
+          # grants from 5.6.1 on (docker/compose#14325) and the runners' Compose 2.38.2 does not
+          BUILDX_BAKE_ENTITLEMENTS_FS: 0
         run: go test -tags e2e -count=1 -v ./test/e2e/...
