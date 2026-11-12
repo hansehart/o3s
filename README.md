@@ -30,12 +30,6 @@ o3s cage ide
 ```
 
 > [!TIP]
-> Check the script before you run it. Every release lists `install.sh` in its `checksums.txt` and signs it, so `gh attestation verify install.sh --repo hansehart/o3s` names the build it came from.
-
-> [!NOTE]
-> Coming from a cloned o3s? Start fresh with `o3s init` in a new folder.
-
-> [!TIP]
 > Make it yours in the [customization guide](https://github.com/Hansehart/o3s/wiki/Customization).
 
 > [!WARNING]
