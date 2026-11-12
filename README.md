@@ -78,7 +78,7 @@ o3s update
    ```
 
 > [!WARNING]
-> Only `~/features`, `~/o3s`, and `~/projects` survive a rebuild in the cage. Keep your work in `~/projects`, where VS Code and the shell open.
+> Only `~/features`, `~/o3s`, and `~/projects` survive a rebuild in the cage. Keep your work in `~/projects` and add each project to the workspace.
 
 ## What you get
 
