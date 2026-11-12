@@ -33,11 +33,11 @@ We created o3s to keep pace: trusted environments, several projects at once, and
    ```
 3. Open it in the cage.
    ```sh
-   o3s cage ide
+   o3s cage ide      # VS Code
    ```
    or
    ```sh
-   o3s cage shell
+   o3s cage shell    # Terminal
    ```
 
 > [!TIP]
