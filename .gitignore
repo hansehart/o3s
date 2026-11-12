@@ -1,5 +1,2 @@
-.devcontainer/.env
-/o3s.json
-/*.code-workspace
 /.github/tools/node_modules/
 /dist/

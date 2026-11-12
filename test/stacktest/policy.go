@@ -1,7 +1,6 @@
 package stacktest
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -13,31 +12,12 @@ func AnEmptyPolicy(tb testing.TB) {
 	AHomePolicy(tb, `{"hosts": []}`)
 }
 
-// AHomePolicy hands the stack the home's policy for the length of the test.
+// AHomePolicy hands the stack of the test's home the policy given.
 func AHomePolicy(tb testing.TB, policy string) {
 	tb.Helper()
-	path := filepath.Join(Repo(tb), "o3s.json")
-	kept, err := os.ReadFile(path)
-	existed := err == nil
-	// Stop when the policy exists yet reading it fails
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		tb.Fatalf("Setup: read %s: %v", path, err)
-	}
+	path := filepath.Join(aHome(tb), "o3s.json")
 	// Stop when the policy stays unwritten
 	if err := os.WriteFile(path, []byte(policy), 0o644); err != nil {
 		tb.Fatalf("Setup: write the home's policy to %s: %v", path, err)
 	}
-	tb.Cleanup(func() {
-		var err error
-		// Restore the policy the checkout held, or remove the one the test wrote
-		if existed {
-			err = os.WriteFile(path, kept, 0o644)
-		} else {
-			err = os.Remove(path)
-		}
-		// Report a policy that outlives its test
-		if err != nil {
-			tb.Errorf("Cleanup: give %s back: %v", path, err)
-		}
-	})
 }
