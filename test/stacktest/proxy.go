@@ -64,7 +64,6 @@ func ProxyReads(tb testing.TB, policy, secrets string) (Parsed, error) {
 // proxyImage reads the image the stack runs its proxy from.
 func proxyImage(tb testing.TB) string {
 	tb.Helper()
-	anEnv(tb)
 	out, err := compose(tb.Context(), tb, "config", "--format", "json")
 	// Stop when the stack's model stays unread
 	if err != nil {

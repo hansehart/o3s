@@ -25,13 +25,13 @@ services:
   cage:
     # Build the base image from this checkout, which Dev Containers then layers features onto
     build:
-      context: ../images/base
+      context: ${O3S_IMAGES:-../images}/base
     image: o3s-base:dev
     pull_policy: build
     environment:
       GATEWAY_IP: *gateway_ip
     volumes:
-      # For developing cage, this directory becomes writable
+      # The home, writable while o3s is under development
       - ../:/home/ubuntu/o3s
     # Replace the inherited list, so resolv.conf holds this stack's gateway alone
     dns: !override
@@ -40,7 +40,7 @@ services:
   gateway:
     # Build the gateway from this checkout
     build:
-      context: ../images/gateway
+      context: ${O3S_IMAGES:-../images}/gateway
     image: o3s-gateway:dev
     pull_policy: build
     environment:

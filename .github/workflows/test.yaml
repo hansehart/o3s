@@ -54,3 +54,9 @@ jobs:
           # grants from 5.6.1 on (docker/compose#14325) and the runners' Compose 2.38.2 does not
           BUILDX_BAKE_ENTITLEMENTS_FS: 0
         run: go test -tags e2e -count=1 -v ./test/e2e/...
+
+      # require the checkout as clean as the suites found it, since every test works in a home of its own
+      - name: Check the checkout stays clean
+        run: |
+          git status --porcelain
+          test -z "$(git status --porcelain)"
