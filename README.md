@@ -42,9 +42,6 @@ We created o3s to keep pace: trusted environments, several projects at once, and
    o3s cage shell
    ```
 
-> [!TIP]
-> Make it yours in the [customization guide](https://github.com/Hansehart/o3s/wiki/Customization).
-
 > [!WARNING]
 > Only `~/features`, `~/o3s`, and `~/projects` survive a rebuild. Keep your work in `~/projects`.
 
