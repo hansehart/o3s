@@ -37,7 +37,7 @@ echo "$EXAMPLE_TOKEN" | o3s secret add EXAMPLE_TOKEN
 
 **store**
 ```sh
-# Adds the feature collections o3s offers from
+# Selects where the cage's tools come from, curated, reproducible and secure by default
 o3s store add ghcr.io/devcontainers/features
 ```
 
