@@ -18,7 +18,10 @@ stdout '^Next steps:$'
 cmp o3s.json $WORK/want.json
 exists .devcontainer/devcontainer.json
 exists .devcontainer/compose.yaml
-exists .devcontainer/lifecycle/post-start.sh
+exists .devcontainer/cage/start.sh
+exists .devcontainer/cage/markers.sh
+exists .devcontainer/cage/check-egress.sh
+! exists .devcontainer/lifecycle
 ! exists .devcontainer/compose.dev.yaml
 exists .devcontainer/.env
 grep '^O3S_PROXY_DIR='$WORK'/.local/state/o3s/proxy$' .devcontainer/.env

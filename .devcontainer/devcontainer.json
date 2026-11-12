@@ -3,7 +3,7 @@
 //
 // DESCRIPTION
 //        The sandboxed dev container: the o3s-base image plus layered features, the remote
-//        user, and the lifecycle scripts. Egress is forced through the o3s gateway and secrets
+//        user, and the cage's scripts. Egress is forced through the o3s gateway and secrets
 //        are injected through the proxy.
 //
 // SEE ALSO
@@ -26,7 +26,7 @@
     // Prepare this host before every start, with its proxy CA, the cage's confinement and the values compose reads
     "initializeCommand": "o3s init",
     // Probe that egress reaches the gateway on every container start
-    "postStartCommand": "bash .devcontainer/lifecycle/post-start.sh",
+    "postStartCommand": "bash .devcontainer/cage/check-egress.sh",
     // VSCode settings
     "customizations": {
         "vscode": {

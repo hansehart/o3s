@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # NAME
-#        env.sh — expose the allowlist's secret markers to every shell
+#        markers.sh — expose the allowlist's secret markers to every shell
 #
 # DESCRIPTION
 #        Reads the secret name each credential-inject host declares and writes a profile
