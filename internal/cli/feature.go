@@ -83,7 +83,7 @@ func newFeatureAdd() *cobra.Command {
 			// Restart the stack where the allowlist changed
 			if len(s.Hosts) > 0 {
 				// Hand back a stack that fails to restart
-				if err := restart(cmd, dir); err != nil {
+				if err := restartStack(cmd, dir); err != nil {
 					return err
 				}
 			}
@@ -144,7 +144,7 @@ func newFeatureRm() *cobra.Command {
 			fmt.Fprintf(out, "Removed %s\n", pkg)
 			// Restart the stack where the allowlist changed
 			if len(r.hosts) > 0 {
-				return restart(cmd, dir)
+				return restartStack(cmd, dir)
 			}
 			return nil
 		},

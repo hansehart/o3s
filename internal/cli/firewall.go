@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/hansehart/o3s/internal/config"
-	"github.com/hansehart/o3s/internal/stack"
+	"github.com/hansehart/o3s/internal/restart"
 )
 
 // newFirewall builds the commands that allow, remove and list hosts.
@@ -126,12 +126,12 @@ func change(cmd *cobra.Command, apply func(*config.Config) error) error {
 	if err != nil {
 		return err
 	}
-	return restart(cmd, dir)
+	return restartStack(cmd, dir)
 }
 
-// restart restarts the home's stack so a saved change takes effect, and names how it does.
-func restart(cmd *cobra.Command, dir string) error {
-	running, err := stack.Restart(cmd.Context(), dir)
+// restartStack restarts the home's stack so a saved change takes effect, and names how it does.
+func restartStack(cmd *cobra.Command, dir string) error {
+	running, err := restart.Stack(cmd.Context(), dir)
 	// Hand back a stack that fails to restart, its settings already saved
 	if err != nil {
 		return fmt.Errorf("saved %s, restart the stack to apply it: %w", config.File, err)
