@@ -7,7 +7,7 @@
 #        Reports on every container start whether a non-allow-listed address stays refused.
 #
 # SEE ALSO
-#        devcontainer.json, initialize.sh
+#        devcontainer.json, o3s init
 
 set -euo pipefail
 

@@ -1,15 +1,22 @@
-# An empty folder becomes a home with the settings of a new home and the stack
+# An empty folder becomes a home with the settings of a new home, the stack, and a prepared host
 mkdir home
 cd home
 exec o3s init
 stdout '^Wrote '$WORK'/home/o3s.json$'
 stdout '^Wrote '$WORK'/home/.devcontainer/ \([0-9]+ files\)$'
+stdout '^Wrote '$WORK'/home/.devcontainer/o3s.code-workspace$'
+stdout '^Made the proxy''s CA in '$WORK'/.config/o3s$'
 stdout '^Next steps:$'
 cmp o3s.json $WORK/want.json
 exists .devcontainer/devcontainer.json
 exists .devcontainer/compose.yaml
-exists .devcontainer/lifecycle/initialize.sh
+exists .devcontainer/lifecycle/post-start.sh
 ! exists .devcontainer/compose.dev.yaml
+! exists .devcontainer/lifecycle/initialize.sh
+exists .devcontainer/.env
+exists $WORK/.config/o3s/mitmproxy-ca.crt
+exists $WORK/.config/o3s/secrets.env
+grep '"initializeCommand": "o3s init"' .devcontainer/devcontainer.json
 
 # The new home works with every command
 exec o3s firewall ls
@@ -17,11 +24,35 @@ stdout '^HOST'
 exec o3s secret ls
 stdout '^NAME'
 
-# A second init leaves the home as it was
-! exec o3s init
-stderr 'already belongs to an o3s home'
+# Every start prepares the host again and keeps the home and its CA as they are
+cp $WORK/.config/o3s/mitmproxy-ca.pem $WORK/ca.pem
+cp .devcontainer/.env $WORK/env
+exec o3s init
+! stdout 'Wrote|Next steps|differs'
+stdout '^The proxy''s CA is ready in '$WORK'/.config/o3s$'
+cmp o3s.json $WORK/want.json
+cmp $WORK/.config/o3s/mitmproxy-ca.pem $WORK/ca.pem
+cmp .devcontainer/.env $WORK/env
+
+# A home that lost its settings gets those of a new home back
+rm o3s.json
+exec o3s init
+stdout '^Wrote '$WORK'/home/o3s.json$'
 cmp o3s.json $WORK/want.json
 
+# A secret a host waits for is named with the command that gives it its value
+exec o3s firewall add example.com --secret EXAMPLE_TOKEN
+exec o3s init
+stdout '^⚠ EXAMPLE_TOKEN waits for its value: echo "\$TOKEN" \| o3s secret add EXAMPLE_TOKEN$'
+
+# A stack that differs from this o3s is pointed at update, and left as it is
+cp $WORK/edited.yaml .devcontainer/compose.yaml
+exec o3s init
+stdout '^The stack differs from this o3s, run o3s update$'
+cmp .devcontainer/compose.yaml $WORK/edited.yaml
+
+-- edited.yaml --
+services: {}
 -- want.json --
 {
   "$schema": "./.devcontainer/o3s.schema.json",
