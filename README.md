@@ -43,7 +43,7 @@ o3s store add ghcr.io/hansehart/devcontainer-features
 
 **feature**
 ```sh
-# Installs a tool with the hosts and env it needs
+# Installs a tool properly, pinned and wired to its hosts, env and config
 o3s feature add ghcr.io/hansehart/devcontainer-features/claude-code
 ```
 
