@@ -13,39 +13,118 @@ import (
 	"github.com/hansehart/o3s/internal/registry"
 )
 
-// runMenu leads the user through a dialog and runs the commands it ends in, in order.
+// Escape sequences of the menu's own screen.
+const (
+	enterScreen = "\x1b[?1049h"
+	leaveScreen = "\x1b[?1049l"
+	clearScreen = "\x1b[H\x1b[2J"
+)
+
+// runMenu keeps the menu open in its own screen, running each dialog's commands until the user leaves.
 func runMenu(ctx context.Context, s Streams) int {
-	cmds, ok, err := menu.Drive(menu.Huh{In: s.In, Out: s.Out}, menuHome(ctx))
-	// Report a dialog that fails to run
-	if err != nil {
-		fmt.Fprintf(s.Err, "Error: %v\n", err)
-		return 1
+	fmt.Fprint(s.Out, enterScreen)
+	ss := &session{
+		ask:   menu.Huh{In: s.In, Out: s.Out},
+		pause: func() error { return menu.Pause(s.In, s.Out) },
+		home:  func() menu.Home { return menuHome(ctx) },
+		in:    s.In,
+		run: func(args []string, in io.Reader) int {
+			return Run(ctx, args, Streams{In: in, Out: s.Out, Err: s.Err})
+		},
+		out: s.Out,
 	}
-	// Leave quietly when the user leaves
-	if !ok {
-		return 0
+	ss.leave = func() { fmt.Fprint(s.Out, leaveScreen) }
+	code := ss.loop()
+	ss.leave()
+	// Report a dialog that failed to run, once the screen is the shell's again
+	if ss.err != nil {
+		fmt.Fprintf(s.Err, "Error: %v\n", ss.err)
 	}
-	// Run every command, stopping at the first that fails
+	return code
+}
+
+// session is the menu kept open: who answers, how it waits after an action, where it reads the home and runs commands.
+type session struct {
+	ask   menu.Prompter
+	pause func() error
+	home  func() menu.Home
+	run   func(args []string, in io.Reader) int
+	in    io.Reader
+	out   io.Writer
+	// leave hands the terminal back to the shell, for a command that takes it over.
+	leave func()
+	// err is the failure that ended the session.
+	err error
+}
+
+// loop runs one dialog after another, each on a clean screen, until the user leaves or a command takes the terminal.
+func (ss *session) loop() int {
+	// Ask one dialog after another
+	for {
+		h := ss.home()
+		fmt.Fprint(ss.out, clearScreen)
+		fmt.Fprintf(ss.out, "o3s  %s\n\n", h.Dir)
+		cmds, ok, err := menu.Drive(ss.ask, h)
+		// End the session on a dialog that fails to run
+		if err != nil {
+			ss.err = err
+			return 1
+		}
+		// End the session where the user leaves
+		if !ok {
+			return 0
+		}
+		// Hand the terminal to a command that takes it over, and end with it
+		if takesOver(cmds) {
+			// Give the shell its screen back first
+			if ss.leave != nil {
+				ss.leave()
+				ss.leave = func() {}
+			}
+			return ss.runAll(cmds)
+		}
+		ss.runAll(cmds)
+		// Go straight back where the dialog ran nothing
+		if len(cmds) == 0 {
+			continue
+		}
+		// End the session where the user leaves from the wait
+		if err := ss.pause(); err != nil {
+			return 0
+		}
+	}
+}
+
+// runAll runs every command of a dialog in order, its notes shown, stopping at the first that fails.
+func (ss *session) runAll(cmds []menu.Command) int {
+	// Run every command in order
 	for _, cmd := range cmds {
 		// Say why the dialog runs nothing
 		if cmd.Note != "" {
-			fmt.Fprintln(s.Out, cmd.Note)
+			fmt.Fprintln(ss.out, cmd.Note)
 		}
 		// Pass over a command that only carries a note
 		if len(cmd.Args) == 0 {
 			continue
 		}
-		in := s.In
+		in := ss.in
 		// Hand a value the dialog collected over stdin
 		if cmd.Stdin != nil {
 			in = strings.NewReader(*cmd.Stdin)
 		}
-		// Stop at a command that fails
-		if code := Run(ctx, cmd.Args, Streams{In: in, Out: s.Out, Err: s.Err}); code != 0 {
+		// Stop at a command that fails, its error on screen
+		if code := ss.run(cmd.Args, in); code != 0 {
 			return code
 		}
 	}
 	return 0
+}
+
+// takesOver reports whether a dialog ends in a command that may replace o3s with another process: the shell, or the update that restarts as the new binary.
+func takesOver(cmds []menu.Command) bool {
+	return slices.ContainsFunc(cmds, func(c menu.Command) bool {
+		return slices.Equal(c.Args, []string{"cage", "shell"}) || slices.Equal(c.Args, []string{"update"})
+	})
 }
 
 // menuLookup answers the menu's questions to the stores, reading each store once.
