@@ -157,6 +157,8 @@ if [ "${devcontainer}" = "yes" ]; then
 			die "failed to download the devcontainer CLI's installer"
 		printf '%s  devcontainers.sh\n' "${devcontainers_installer_sha256}" >"${tmp}/devcontainers.sha256"
 		check_sums "${tmp}" "devcontainers.sha256" || die "the devcontainer CLI's installer differs from its pinned checksum"
+		# Make the folder above the CLI's, which its installer asks to be writable
+		mkdir -p "$(dirname "${prefix}")" || die "failed to create $(dirname "${prefix}")"
 		sh "${tmp}/devcontainers.sh" --prefix "${prefix}" --version "${devcontainers_version}"
 	fi
 fi
