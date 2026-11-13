@@ -94,7 +94,7 @@ o3s update
 
 ### Security
 
-You decide in one file, `o3s.json`, which hosts the cage reaches and which secrets it uses. Their values stay on the host, and the proxy injects them on the way out.
+Your security model lives in one file, which hosts the cage reaches and which secrets it uses. Their values stay on the host, and the proxy injects them on the way out.
 
 ### Productivity
 
