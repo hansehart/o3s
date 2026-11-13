@@ -134,13 +134,13 @@ Several agents work side by side, each on its own branch or worktree. Everything
 ```json
 {
   "folders": [
-    { "name": "o3s",                        "path": "/home/ubuntu/o3s" },
-    { "name": "eval-harness",               "path": "/home/ubuntu/projects/eval-harness" },
-    { "name": "inference-engine",           "path": "/home/ubuntu/projects/inference-engine" },
+    { "name": "o3s", "path": "/home/ubuntu/o3s" },
+    { "name": "eval-harness", "path": "/home/ubuntu/projects/eval-harness" },
+    { "name": "inference-engine", "path": "/home/ubuntu/projects/inference-engine" },
     { "name": "inference-engine.worktrees", "path": "/home/ubuntu/projects/inference-engine.worktrees" },
-    { "name": "triton-kernels",             "path": "/home/ubuntu/projects/triton-kernels" },
-    { "name": "triton-kernels.worktrees",   "path": "/home/ubuntu/projects/triton-kernels.worktrees" },
-    { "name": "wafer-scale-compiler",       "path": "/home/ubuntu/projects/wafer-scale-compiler" }
+    { "name": "triton-kernels", "path": "/home/ubuntu/projects/triton-kernels" },
+    { "name": "triton-kernels.worktrees", "path": "/home/ubuntu/projects/triton-kernels.worktrees" },
+    { "name": "wafer-scale-compiler", "path": "/home/ubuntu/projects/wafer-scale-compiler" }
   ]
 }
 ```
