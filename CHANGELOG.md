@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.4](https://github.com/hansehart/o3s/compare/v0.7.3...v0.7.4) (2026-11-13)
+
+
+### Features
+
+* **cli:** pin the stack's images by digest ([#233](https://github.com/hansehart/o3s/issues/233)) ([eb0dfff](https://github.com/hansehart/o3s/commit/eb0dfff1070fa8354bb291b5f2e6f2605723b05d))
+
+
+### Bug Fixes
+
+* **cli:** pull the gateway once per version ([#232](https://github.com/hansehart/o3s/issues/232)) ([f315bd2](https://github.com/hansehart/o3s/commit/f315bd2bc99340e5c9a8aebddabdc8ecd1e7bf33))
+
 ## [0.7.3](https://github.com/hansehart/o3s/compare/v0.7.2...v0.7.3) (2026-11-13)
 
 
