@@ -49,8 +49,12 @@ o3s feature add ghcr.io/hansehart/devcontainer-features/claude-code
 
 **cage**
 ```sh
-# Opens the home's workspace in VS Code inside the cage, or a shell inside it
+# Opens the home's workspace in VS Code inside the cage
 o3s cage ide
+```
+or
+```sh
+# Opens a shell inside the cage
 o3s cage shell
 ```
 
