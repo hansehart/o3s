@@ -1,6 +1,7 @@
 package cli_test
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/hansehart/o3s/internal/cli"
 	"github.com/hansehart/o3s/internal/config"
+	"github.com/hansehart/o3s/internal/home"
 )
 
 // aHome works inside a new home with an empty allowlist and an engine that runs no stack.
@@ -78,5 +80,19 @@ func TestRunWritesTheHomeItRunsIn(t *testing.T) {
 	// Require the host in the file
 	if err != nil || !strings.Contains(string(data), `"example.com"`) {
 		t.Errorf("home file = %q, %v, want example.com in it", data, err)
+	}
+}
+
+// Run hands the digests a release binary carries on to the stack it writes.
+func TestRunPassesTheDigestsOn(t *testing.T) {
+	digests := map[string]string{"ghcr.io/hansehart/o3s-cage": "sha256:" + strings.Repeat("a", 64)}
+	cli.Digests = digests
+	t.Cleanup(func() { cli.Digests, home.Digests = nil, nil })
+
+	cli.Run(t.Context(), []string{"--version"}, cli.Streams{In: strings.NewReader(""), Out: io.Discard, Err: io.Discard})
+
+	// Require the digests in the home package
+	if home.Digests["ghcr.io/hansehart/o3s-cage"] != digests["ghcr.io/hansehart/o3s-cage"] {
+		t.Errorf("home.Digests = %v, want %v", home.Digests, digests)
 	}
 }

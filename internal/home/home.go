@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/tailscale/hujson"
@@ -32,6 +33,9 @@ var Executable string
 
 // startHook is the start hook the shipped config names, which a release replaces with its own path.
 const startHook = `"initializeCommand": "o3s init"`
+
+// Digests are the digests of the images a release binary was built with, by image.
+var Digests map[string]string
 
 // images are the images o3s publishes with each release.
 var images = []string{"ghcr.io/hansehart/o3s-cage", "ghcr.io/hansehart/o3s-gateway"}
@@ -158,18 +162,26 @@ func Seed(dir string) ([]string, error) {
 	return written, nil
 }
 
-// pinned tags o3s's own images with the binary's release, and leaves latest for any other build.
+// pinned tags o3s's own images with the binary's release and the digests it carries, and leaves latest for any other build.
 func pinned(compose []byte) []byte {
 	// Keep latest for a build that names no release
 	if !release.IsRelease(Version) {
 		return compose
 	}
-	// Tag every o3s image with the release
+	// Tag every o3s image with the release, and pin it where the binary carries its digest
 	for _, image := range images {
-		compose = bytes.ReplaceAll(compose, []byte(image+":latest"), []byte(image+":"+Version))
+		ref := image + ":" + Version
+		// Pin the image to the digest the release built
+		if d := Digests[image]; digest.MatchString(d) {
+			ref += "@" + d
+		}
+		compose = bytes.ReplaceAll(compose, []byte(image+":latest"), []byte(ref))
 	}
 	return compose
 }
+
+// digest matches a well-formed image digest.
+var digest = regexp.MustCompile(`^sha256:[0-9a-f]{64}$`)
 
 // writeFile writes a file of the stack in a single step, with the folders it needs.
 func writeFile(path string, data []byte) error {
