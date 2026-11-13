@@ -17,69 +17,156 @@
 
 If you are not willing to trade security for productivity, o3s is a match. Let an agent generate every line of code, and review every line by hand or none at all. Either way, which hosts your agents reach and which secrets they can read stays yours to decide.
 
-[Anthropic][ref] and [OpenAI][cdx] both ship a reference devcontainer, deliberately minimal, and both tell you to bring your own network controls. o3s starts where they stop: productivity on steroids, and deterministic enforcement (harness) to get there.
+We created o3s to keep pace: trusted environments, several projects at once, and several features inside each. AI will not be the death of good engineering. It is the golden era of agentic software engineers. This is how we build with it and still stand behind every line that ships.
 
-We do software development for a living, and o3s is our answer to keeping pace: trusted environments, several projects at once, and several features inside each. AI will not be the death of good engineering. It is the golden era of agentic software engineers. This is how we build with it and still stand behind every line that ships.
+## Commands
 
-## Security
+Run `o3s` alone for a menu that leads through each of them.
 
-You keep the whole policy in one file, `o3s.json`, and change it with `o3s firewall`:
-
+**firewall**
 ```sh
+# Allows the hosts the cage may reach
 o3s firewall add github.com --port 22 --port 443
-o3s firewall add api.openai.com --secret OPENAI_API_KEY   # injected for this host only, never inside the cage
-o3s firewall ls
 ```
 
-```json
+**secret**
+```sh
+# Lets the cage use a secret while its value stays on the host
+echo "$EXAMPLE_TOKEN" | o3s secret add EXAMPLE_TOKEN
+```
+
+**store**
+```sh
+# Selects where the cage's tools come from, curated, reproducible and locked down
+o3s store add ghcr.io/hansehart/devcontainer-features
+```
+
+**feature**
+```sh
+# Installs a tool properly, pinned and wired to its hosts, env and config
+o3s feature add ghcr.io/hansehart/devcontainer-features/claude-code
+```
+
+**cage**
+```sh
+# Opens the home's workspace in VS Code inside the cage
+o3s cage ide
+```
+or
+```sh
+# Opens a shell inside the cage
+o3s cage shell
+```
+
+**update**
+```sh
+# Brings the binary, its images, the stack and your features forward
+o3s update
+```
+
+## Getting started
+
+**Prerequisites:** Linux on amd64 or arm64, [Docker](https://docs.docker.com/engine/install/) with Compose, [VS Code](https://code.visualstudio.com/download) with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers), and tar and xz.
+
+1. Install o3s.
+   ```sh
+   curl -fsSL https://github.com/hansehart/o3s/releases/latest/download/install.sh | sh
+   ```
+2. Create your home.
+   ```sh
+   mkdir ~/o3s && cd ~/o3s && o3s init
+   ```
+3. Open it in the cage.
+   ```sh
+   # VS Code
+   o3s cage ide
+   ```
+   or
+   ```sh
+   # Terminal
+   o3s cage shell
+   ```
+
+> [!WARNING]
+> Only `~/features`, `~/o3s`, and `~/projects` survive a rebuild in the cage. Keep your work in `~/projects` and add each project to the workspace.
+
+## What you get
+
+### Security
+
+Your security model lives in one file, which hosts the cage reaches and which secrets it uses. Their values stay on the host, and the proxy injects them on the way out.
+
+```jsonc
 {
+  "$schema": "./.devcontainer/o3s.schema.json",
+  "stores": [
+    { "id": "ghcr.io/devcontainers/features" },
+    { "id": "ghcr.io/hansehart/devcontainer-features" }
+  ],
   "hosts": [
+    // yours
     { "name": "github.com", "ports": [22, 443], "by": ["user"] },
-    { "name": "api.openai.com", "ports": [443], "secret": "OPENAI_API_KEY", "inject": ["header"], "by": ["user"] }
+
+    // claude-code
+    { "name": "api.anthropic.com", "ports": [443], "secret": "ANTHROPIC_API_KEY", "inject": ["header"], "by": ["ghcr.io/hansehart/devcontainer-features/claude-code"] },
+    { "name": "platform.claude.com", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/claude-code"] },
+
+    // docker-in-docker
+    { "name": "*.docker.io", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/docker-in-docker"] },
+    { "name": "production.cloudfront.docker.com", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/docker-in-docker"] },
+
+    // go
+    { "name": "proxy.golang.org", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/go"] },
+    { "name": "sum.golang.org", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/go"] },
+
+    // rust
+    { "name": "index.crates.io", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/rust"] },
+    { "name": "static.crates.io", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/rust"] },
+    { "name": "static.rust-lang.org", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/rust"] }
   ]
 }
 ```
 
-A host is a domain, a wildcard like `*.docker.io` that covers every subdomain, an IPv4 address or an IPv4 range. Every host names its ports, and a host with a secret carries it in its requests' headers, or in the query or body it names. Each change restarts the gateway and the proxy, so the cage reaches the new policy at once.
+### Productivity
 
-## Productivity
-
-You list every project in one file, `o3s.code-workspace`, one folder per repository or worktree:
+Several agents work side by side, each on its own branch or worktree. Everything lands in one view for you to review.
 
 ```json
-"folders": [
-  { "name": "devcontainer-features", "path": "/home/ubuntu/projects/devcontainer-features" },
-  { "name": "infra",                 "path": "/home/ubuntu/projects/infra" },
-  { "name": "infra.worktrees",       "path": "/home/ubuntu/projects/infra.worktrees" },
-  { "name": "malea-backend",         "path": "/home/ubuntu/projects/malea-backend" },
-  { "name": "malea-docs",            "path": "/home/ubuntu/projects/malea-docs" },
-  { "name": "malea-graph",           "path": "/home/ubuntu/projects/malea-graph" },
-  { "name": "malea-web",             "path": "/home/ubuntu/projects/malea-web" },
-  { "name": "works-on-my-machine",   "path": "/home/ubuntu/projects/works-on-my-machine" }
-]
+{
+  "folders": [
+    { "name": "o3s", "path": "/home/ubuntu/o3s" },
+    { "name": "eval-harness", "path": "/home/ubuntu/projects/eval-harness" },
+    { "name": "inference-engine", "path": "/home/ubuntu/projects/inference-engine" },
+    { "name": "inference-engine.worktrees", "path": "/home/ubuntu/projects/inference-engine.worktrees" },
+    { "name": "triton-kernels", "path": "/home/ubuntu/projects/triton-kernels" },
+    { "name": "triton-kernels.worktrees", "path": "/home/ubuntu/projects/triton-kernels.worktrees" },
+    { "name": "wafer-scale-compiler", "path": "/home/ubuntu/projects/wafer-scale-compiler" }
+  ]
+}
 ```
 
-Open it and every repository lands in one source-control view, worktrees nested under the repository they came from:
+### Velocity
 
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/workspace-dark.png">
-    <img src=".github/assets/workspace.png" alt="Several repositories in one o3s source-control view, each on its own branch, with worktrees nested under the repository they came from" width="100%">
-  </picture>
-</p>
+Fail fast, fix faster, ship fastest. Your agents see every repository at once, the best context they can get. With rootless Docker and minikube they run your whole stack inside the cage, break it and bring it back without touching anything real.
 
-Run whatever agent you like, several at once, each on its own branch. They work in parallel without colliding, and everything lands in one place for you to review.
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/agents-dark.png">
-    <img src=".github/assets/agents.png" alt="Claude Code and Codex CLI running in four panes at once inside one o3s dev container" width="100%">
-  </picture>
-</p>
-
-## Iteration
-
-Rootless Docker and minikube can run inside the sandbox, so an agent can stand up your whole stack, break it, and stand it up again without touching anything real. Two things have to hold: the infrastructure has to behave like production, and the loop from failure to next attempt has to be short.
+```json
+{
+  "features": {
+    "ghcr.io/hansehart/devcontainer-features/claude-code:3": {
+      "stateDir": "/home/ubuntu/features/ghcr.io/hansehart/devcontainer-features/claude-code"
+    },
+    "ghcr.io/hansehart/devcontainer-features/docker-in-docker:4": {
+      "stateDir": "/home/ubuntu/features/ghcr.io/hansehart/devcontainer-features/docker-in-docker"
+    },
+    "ghcr.io/hansehart/devcontainer-features/go:2": {
+      "stateDir": "/home/ubuntu/features/ghcr.io/hansehart/devcontainer-features/go"
+    },
+    "ghcr.io/hansehart/devcontainer-features/rust:2": {
+      "stateDir": "/home/ubuntu/features/ghcr.io/hansehart/devcontainer-features/rust"
+    }
+  }
+}
+```
 
 ## References
 
@@ -94,27 +181,7 @@ Rootless Docker and minikube can run inside the sandbox, so an agent can stand u
 
 See the [comparison](https://github.com/Hansehart/o3s/wiki/Comparison) for others working on the same problem.
 
-[ref]: https://github.com/anthropics/claude-code/tree/main/.devcontainer
-[cdx]: https://github.com/openai/codex/tree/main/.devcontainer
-
 Something here you would do differently? Open an issue, send a pull request, or just get in touch. And if one of the others fits you better, take it, as long as you keep both your security and your productivity. You are always welcome back.
-
-## Getting started
-
-**Prerequisites:** [Docker](https://docs.docker.com/engine/install/), [VS Code](https://code.visualstudio.com/download), and the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers).
-
-1. Clone the repo.
-   ```bash
-   git clone https://github.com/Hansehart/o3s.git
-   ```
-2. Open it in VS Code and run `Dev Containers: Reopen in Container`.
-3. Open `.devcontainer/o3s.code-workspace` and keep your projects in `~/projects`.
-
-> [!TIP]
-> Make it yours in the [customization guide](https://github.com/Hansehart/o3s/wiki/Customization).
-
-> [!WARNING]
-> Only `~/features`, `~/o3s`, and `~/projects` survive a rebuild. Keep your work in `~/projects`.
 
 ## What the name means
 
