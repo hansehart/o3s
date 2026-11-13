@@ -102,7 +102,7 @@ One workspace holds all your projects and worktrees, so several agents work side
 
 ### Velocity
 
-Break early, fix earlier, ship earliest. Rootless Docker and minikube run inside the cage, so an agent stands up your whole stack, breaks it and stands it up again without touching anything real.
+Fail fast, fix faster, ship fastest. Rootless Docker and minikube run inside the cage, so an agent stands up your whole stack, breaks it and stands it up again without touching anything real.
 
 ## References
 
