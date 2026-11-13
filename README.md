@@ -149,6 +149,25 @@ Several agents work side by side, each on its own branch or worktree. Everything
 
 Fail fast, fix faster, ship fastest. Your agents see every repository at once, the best context they can get. With rootless Docker and minikube they run your whole stack inside the cage, break it and bring it back without touching anything real.
 
+```json
+{
+  "features": {
+    "ghcr.io/hansehart/devcontainer-features/claude-code:3": {
+      "stateDir": "/home/ubuntu/features/ghcr.io/hansehart/devcontainer-features/claude-code"
+    },
+    "ghcr.io/hansehart/devcontainer-features/docker-in-docker:4": {
+      "stateDir": "/home/ubuntu/features/ghcr.io/hansehart/devcontainer-features/docker-in-docker"
+    },
+    "ghcr.io/hansehart/devcontainer-features/go:2": {
+      "stateDir": "/home/ubuntu/features/ghcr.io/hansehart/devcontainer-features/go"
+    },
+    "ghcr.io/hansehart/devcontainer-features/rust:2": {
+      "stateDir": "/home/ubuntu/features/ghcr.io/hansehart/devcontainer-features/rust"
+    }
+  }
+}
+```
+
 ## References
 
 > [!TIP]
