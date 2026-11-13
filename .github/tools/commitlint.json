@@ -11,8 +11,8 @@
       "always",
       [
         "cage",
+        "cli",
         "deps",
-        "devcontainer",
         "docs",
         "gateway",
         "proxy",
