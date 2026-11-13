@@ -319,11 +319,17 @@ func feature(h Home, a Answers, action string) (Question, bool) {
 	if err != nil {
 		return Question{}, true
 	}
-	// Ask which of the store's features to add
+	// Ask which of the store's features to add, as many as the user likes
 	if !a.has("feature") {
-		return choose("feature", "Feature", ids...), false
+		q := choose("feature", "Features", ids...)
+		q.Kind = Multi
+		return q, false
 	}
-	pv, err := h.Lookup.Add(a.get("store") + "/" + a.get("feature"))
+	// End the dialog where the user chose no feature
+	if len(a.all("feature")) == 0 {
+		return Question{}, true
+	}
+	pv, err := previewAll(h, a)
 	// End the dialog where the change stays unknown
 	if err != nil {
 		return Question{}, true
@@ -372,8 +378,11 @@ func featurePlan(h Home, a Answers, action string) []Command {
 	if _, err := h.Lookup.Features(a.get("store")); err != nil {
 		return []Command{{Note: "⚠ " + err.Error()}}
 	}
-	id := a.get("store") + "/" + a.get("feature")
-	pv, err := h.Lookup.Add(id)
+	// Name that the user chose no feature
+	if len(a.all("feature")) == 0 {
+		return []Command{{Note: "No feature chosen"}}
+	}
+	pv, err := previewAll(h, a)
 	// Name a change that stays unknown
 	if err != nil {
 		return []Command{{Note: "⚠ " + err.Error()}}
@@ -391,7 +400,39 @@ func featurePlan(h Home, a Answers, action string) []Command {
 			cmds = append(cmds, Command{Args: []string{"secret", "add", name, "--no-bind-hint"}, Stdin: &value})
 		}
 	}
-	return append(cmds, Command{Args: []string{"feature", "add", id, "--no-preview"}})
+	return append(cmds, Command{Args: append(append([]string{"feature", "add"}, chosenIDs(a)...), "--no-preview")})
+}
+
+// chosenIDs hands back the full id of every feature chosen, in the order the answer holds them.
+func chosenIDs(a Answers) []string {
+	var ids []string
+	// Prefix every chosen feature with its store
+	for _, f := range a.all("feature") {
+		ids = append(ids, a.get("store")+"/"+f)
+	}
+	return ids
+}
+
+// previewAll joins what every chosen feature brings, each secret they wait for named once.
+func previewAll(h Home, a Answers) (Preview, error) {
+	var all Preview
+	// Preview every chosen feature in turn
+	for _, id := range chosenIDs(a) {
+		pv, err := h.Lookup.Add(id)
+		// Hand back a change that stays unknown
+		if err != nil {
+			return Preview{}, err
+		}
+		all.Lines = append(all.Lines, pv.Lines...)
+		// Take each waiting secret once
+		for _, name := range pv.Waiting {
+			// Keep a secret taken already out of the list
+			if !slices.Contains(all.Waiting, name) {
+				all.Waiting = append(all.Waiting, name)
+			}
+		}
+	}
+	return all, nil
 }
 
 // apply asks to apply a change, showing it above the question.

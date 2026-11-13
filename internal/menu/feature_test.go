@@ -49,7 +49,7 @@ func TestFeatureDialogsEndInTheirCommands(t *testing.T) {
 		{
 			"adding a feature with one value given and one skipped",
 			[][]string{{"feature"}, {"add"}, {"registry.example.com/features"}, {"tool"}, {"yes"}, {value}, {""}},
-			[]string{"What do you want to do?", "Action", "Store", "Feature", "Apply?", "Value for EXAMPLE_TOKEN (empty to skip)", "Value for OTHER_TOKEN (empty to skip)"},
+			[]string{"What do you want to do?", "Action", "Store", "Features", "Apply?", "Value for EXAMPLE_TOKEN (empty to skip)", "Value for OTHER_TOKEN (empty to skip)"},
 			[]Command{
 				{Args: []string{"secret", "add", "EXAMPLE_TOKEN", "--no-bind-hint"}, Stdin: &value},
 				{Args: []string{"feature", "add", "registry.example.com/features/tool", "--no-preview"}},
@@ -58,8 +58,23 @@ func TestFeatureDialogsEndInTheirCommands(t *testing.T) {
 		{
 			"declining a feature",
 			[][]string{{"feature"}, {"add"}, {"registry.example.com/features"}, {"tool"}, {"no"}},
-			[]string{"What do you want to do?", "Action", "Store", "Feature", "Apply?"},
+			[]string{"What do you want to do?", "Action", "Store", "Features", "Apply?"},
 			nil,
+		},
+		{
+			"adding two features that wait for the same secrets",
+			[][]string{{"feature"}, {"add"}, {"registry.example.com/features"}, {"other", "tool"}, {"yes"}, {value}, {""}},
+			[]string{"What do you want to do?", "Action", "Store", "Features", "Apply?", "Value for EXAMPLE_TOKEN (empty to skip)", "Value for OTHER_TOKEN (empty to skip)"},
+			[]Command{
+				{Args: []string{"secret", "add", "EXAMPLE_TOKEN", "--no-bind-hint"}, Stdin: &value},
+				{Args: []string{"feature", "add", "registry.example.com/features/other", "registry.example.com/features/tool", "--no-preview"}},
+			},
+		},
+		{
+			"choosing no feature",
+			[][]string{{"feature"}, {"add"}, {"registry.example.com/features"}, {}},
+			[]string{"What do you want to do?", "Action", "Store", "Features"},
+			[]Command{{Note: "No feature chosen"}},
 		},
 		{
 			"a store out of reach",
@@ -140,5 +155,21 @@ func TestTheFirstQuestionOffersFeatures(t *testing.T) {
 	// Report options that differ
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("options (-want +got):\n%s", diff)
+	}
+}
+
+// The features of a store come as a multi-select, and Apply? shows each chosen one's change in turn.
+func TestFeatureAddChoosesSeveral(t *testing.T) {
+	asked, _ := walk(t, aHomeWithTheTool(), []string{"feature"}, []string{"add"}, []string{"registry.example.com/features"}, []string{"other", "tool"}, []string{"no"})
+
+	got := []any{asked[3].Kind, asked[4].Preview}
+
+	want := []any{Multi, []string{
+		"registry.example.com/features/other:1", "  + example.com:443  EXAMPLE_TOKEN ⚠", "  + example.org:443  OTHER_TOKEN ⚠",
+		"registry.example.com/features/tool:1", "  + example.com:443  EXAMPLE_TOKEN ⚠", "  + example.org:443  OTHER_TOKEN ⚠",
+	}}
+	// Report a question or a preview that differs
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("features question (-want +got):\n%s", diff)
 	}
 }

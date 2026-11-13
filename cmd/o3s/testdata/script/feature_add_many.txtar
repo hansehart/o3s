@@ -1,0 +1,41 @@
+# Several features join in one run, saved once, the stack restarted once
+exec o3s feature add $REGISTRY/features/tool $REGISTRY/features/go
+stdout '^Added '${REGISTRY@R}'/features/tool$'
+stdout '^Added '${REGISTRY@R}'/features/go$'
+stdout '^Rebuild the cage to install them$'
+grep '/features/tool:2' .devcontainer/devcontainer.json
+grep '/features/go:1' .devcontainer/devcontainer.json
+cmpenv docker.log want.log
+
+# A feature whose host breaks a rule leaves both files as they were, the other features included
+rm docker.log
+exec o3s feature rm $REGISTRY/features/tool
+exec o3s feature rm $REGISTRY/features/go
+cp other.json o3s.json
+cp o3s.json before.json
+cp .devcontainer/devcontainer.json before.jsonc
+! exec o3s feature add $REGISTRY/features/go $REGISTRY/features/tool
+stderr 'features/tool needs example.com'
+cmp o3s.json before.json
+cmp .devcontainer/devcontainer.json before.jsonc
+
+# Naming no feature is a usage error
+! exec o3s feature add
+stderr 'requires at least 1 arg'
+stderr 'for usage'
+
+-- stack-up --
+-- o3s.json --
+{"$schema": "./.devcontainer/o3s.schema.json", "stores": [], "hosts": []}
+-- other.json --
+{"$schema": "./.devcontainer/o3s.schema.json", "stores": [], "hosts": [{"name": "example.com", "ports": [443], "secret": "OTHER_TOKEN", "inject": ["header"], "by": ["user"]}]}
+-- .devcontainer/devcontainer.json --
+{
+    "features": {},
+    "containerEnv": {}
+}
+-- want.log --
+ps -q --filter label=com.docker.compose.project.working_dir=$WORK/.devcontainer --filter label=com.docker.compose.service=gateway
+ps -q --filter label=com.docker.compose.project.working_dir=$WORK/.devcontainer --filter label=com.docker.compose.service=proxy
+restart gateway-id
+restart proxy-id
