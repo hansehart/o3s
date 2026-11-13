@@ -27,7 +27,7 @@ services:
   # The dev container the work happens in, reaching the internet through the gateway alone.
   cage:
     image: ghcr.io/hansehart/o3s-cage:latest
-    # Dev Containers rebuilds this into a local vsc-o3s-<hash> image so only pull the cage image when absent
+    # Each release pins its own tag, so only pull the cage image when absent
     pull_policy: missing
     environment:
       # Egress firewall gateway
@@ -126,6 +126,7 @@ services:
   # Injects the upstream API key into inject-host HTTPS so the keys live here, never in the cage.
   proxy:
     image: ghcr.io/mitmproxy/mitmproxy:12.2.3@sha256:00b77b5d8804c8ad18cb6caefbf9d5849e895e8986c5ce011f4ae30f4385962f
+    # The digest pins the image, so only pull the proxy image when absent
     pull_policy: missing
     # Share the gateway's network namespace so its iptables REDIRECT lands here and resolves the original dst
     network_mode: "service:gateway"
