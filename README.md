@@ -96,9 +96,54 @@ o3s update
 
 Your security model lives in one file, which hosts the cage reaches and which secrets it uses. Their values stay on the host, and the proxy injects them on the way out.
 
+```json
+{
+  "$schema": "./.devcontainer/o3s.schema.json",
+  "stores": [
+    { "id": "ghcr.io/devcontainers/features" },
+    { "id": "ghcr.io/hansehart/devcontainer-features" }
+  ],
+  "hosts": [
+    { "name": "api.anthropic.com", "ports": [443], "secret": "ANTHROPIC_API_KEY", "inject": ["header"], "by": ["ghcr.io/hansehart/devcontainer-features/claude-code"] },
+    { "name": "releases.astral.sh", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/python"] },
+    { "name": "chatgpt.com", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/codex"] },
+    { "name": "platform.claude.com", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/claude-code"] },
+    { "name": "index.crates.io", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/rust"] },
+    { "name": "static.crates.io", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/rust"] },
+    { "name": "production.cloudfront.docker.com", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/docker-in-docker"] },
+    { "name": "*.docker.io", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/docker-in-docker"] },
+    { "name": "github.com", "ports": [22, 443], "by": ["user"] },
+    { "name": "proxy.golang.org", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/go"] },
+    { "name": "sum.golang.org", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/go"] },
+    { "name": "nodejs.org", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/node"] },
+    { "name": "registry.npmjs.org", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/node"] },
+    { "name": "api.openai.com", "ports": [443], "secret": "OPENAI_API_KEY", "inject": ["header"], "by": ["ghcr.io/hansehart/devcontainer-features/codex"] },
+    { "name": "auth.openai.com", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/codex"] },
+    { "name": "pypi.org", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/python"] },
+    { "name": "files.pythonhosted.org", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/python"] },
+    { "name": "static.rust-lang.org", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/rust"] },
+    { "name": "texlive.info", "ports": [443], "by": ["ghcr.io/hansehart/devcontainer-features/latex"] }
+  ]
+}
+```
+
 ### Productivity
 
 Several agents work side by side, each on its own branch or worktree. Everything lands in one view for you to review.
+
+```json
+{
+  "folders": [
+    { "name": "o3s",                    "path": "/home/ubuntu/o3s" },
+    { "name": "billing-api",            "path": "/home/ubuntu/projects/billing-api" },
+    { "name": "billing-api.worktrees",  "path": "/home/ubuntu/projects/billing-api.worktrees" },
+    { "name": "checkout-web",           "path": "/home/ubuntu/projects/checkout-web" },
+    { "name": "checkout-web.worktrees", "path": "/home/ubuntu/projects/checkout-web.worktrees" },
+    { "name": "design-system",          "path": "/home/ubuntu/projects/design-system" },
+    { "name": "platform-infra",         "path": "/home/ubuntu/projects/platform-infra" }
+  ]
+}
+```
 
 ### Velocity
 
