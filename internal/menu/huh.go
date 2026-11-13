@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 
+	"charm.land/bubbles/v2/cursor"
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/huh/v2"
@@ -42,7 +43,7 @@ func (h Huh) Ask(q Question) ([]string, error) {
 			if k, isKey := msg.(tea.KeyPressMsg); isKey && k.String() == "ctrl+c" {
 				interrupted = true
 			}
-			return msg
+			return steady(msg)
 		}))
 	err := form.Run()
 	// Tell leaving from stepping back
@@ -125,4 +126,13 @@ func answerOf(kind Kind, single string, multi []string, ok bool) []string {
 		return []string{strings.TrimSpace(single)}
 	}
 	return []string{strings.TrimSpace(single)}
+}
+
+// steady keeps the cursor's blink out of the form, so an input's cursor stays shown without flashing.
+func steady(msg tea.Msg) tea.Msg {
+	// Drop the message that would hide the cursor half the time
+	if _, blink := msg.(cursor.BlinkMsg); blink {
+		return nil
+	}
+	return msg
 }
