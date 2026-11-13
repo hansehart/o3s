@@ -13,7 +13,7 @@ stdout '^Wrote '$WORK'/home/o3s.json$'
 stdout '^Wrote '$WORK'/home/.devcontainer/ \([0-9]+ files\)$'
 stdout '^Wrote '$WORK'/home/home.code-workspace$'
 stdout '^Made the proxy''s CA in '$WORK'/.local/state/o3s/proxy$'
-stdout '^  code '$WORK'/home/home.code-workspace +open it, then reopen in the container$'
+stdout '^  o3s cage ide +open it in the cage$'
 stdout '^Next steps:$'
 cmp o3s.json $WORK/want.json
 exists .devcontainer/devcontainer.json

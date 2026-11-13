@@ -63,7 +63,7 @@ func newInit() *cobra.Command {
 			}
 			// Point a new home at what comes next
 			if fresh {
-				nextSteps(out, dir)
+				nextSteps(out)
 				return nil
 			}
 			changes, err := home.Refresh(dir)
@@ -149,12 +149,12 @@ func waiting(out io.Writer, dir string) {
 	}
 }
 
-// nextSteps points a new home at the commands that fill it and the editor that opens it.
-func nextSteps(out io.Writer, dir string) {
+// nextSteps points a new home at the commands that fill it and the one that opens its cage.
+func nextSteps(out io.Writer) {
 	fmt.Fprintf(out, "\nNext steps:\n")
 	w := tabwriter.NewWriter(out, 0, 0, 3, ' ', 0)
 	fmt.Fprintf(w, "  o3s firewall add <host> --port 443\tallow a host\n")
 	fmt.Fprintf(w, "  echo \"$TOKEN\" | o3s secret add <NAME>\tstore a secret\n")
-	fmt.Fprintf(w, "  code %s\topen it, then reopen in the container\n", filepath.Join(dir, filepath.Base(dir)+".code-workspace"))
+	fmt.Fprintln(w, "  o3s cage ide\topen it in the cage")
 	_ = w.Flush()
 }
