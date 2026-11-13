@@ -71,7 +71,7 @@ func field(q Question, single *string, multi *[]string, ok *bool) huh.Field {
 	// Build the field of the question's kind
 	switch q.Kind {
 	case Multi:
-		return huh.NewMultiSelect[string]().Title(q.Title).Options(options(q, *multi)...).Value(multi)
+		return huh.NewMultiSelect[string]().Title(q.Title).Options(options(q, *multi)...).Filterable(true).Value(multi)
 	case Input:
 		// Ask with the default in brackets, the field empty so a plain Enter keeps it
 		if len(q.Default) > 0 {

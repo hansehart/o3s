@@ -98,7 +98,7 @@ func TestDriveStepsBackToAnAnswerThatSkipsAQuestion(t *testing.T) {
 	}
 }
 
-// Esc on a value returns to Apply?, and Esc there returns to the feature.
+// Esc on a value returns to Apply?, and Esc there returns to the features.
 func TestDriveStepsBackThroughTheFeatureDialog(t *testing.T) {
 	h := aHomeWithTheTool()
 	s := &script{steps: []step{say("feature"), say("add"), say("registry.example.com/features"), say("tool"), say("yes"), {err: ErrBack}, {err: ErrBack}, say("other"), say("no")}}
@@ -109,7 +109,7 @@ func TestDriveStepsBackThroughTheFeatureDialog(t *testing.T) {
 	if err != nil || !ok || got != nil {
 		t.Fatalf("Drive() = %v, %v, %v, want no command", got, ok, err)
 	}
-	want := []string{"What do you want to do?", "Action", "Store", "Feature", "Apply?", "Value for EXAMPLE_TOKEN (empty to skip)", "Apply?", "Feature", "Apply?"}
+	want := []string{"What do you want to do?", "Action", "Store", "Features", "Apply?", "Value for EXAMPLE_TOKEN (empty to skip)", "Apply?", "Features", "Apply?"}
 	// Require each question asked again after Esc
 	if diff := cmp.Diff(want, s.asked); diff != "" {
 		t.Errorf("asked (-want +got):\n%s", diff)

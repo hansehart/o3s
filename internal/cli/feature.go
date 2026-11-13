@@ -21,41 +21,41 @@ func newFeature() *cobra.Command {
 	return f
 }
 
-// newFeatureAdd builds the command that adds a feature with the hosts and env it needs.
+// newFeatureAdd builds the command that adds features with the hosts and env they need, saved together.
 func newFeatureAdd() *cobra.Command {
 	var noPreview bool
 	cmd := &cobra.Command{
-		Use:   "add <id>",
-		Short: "Add a feature with the hosts and env it needs",
-		Args:  usage(cobra.ExactArgs(1)),
+		Use:   "add <id>...",
+		Short: "Add features with the hosts and env they need",
+		Args:  usage(cobra.MinimumNArgs(1)),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			ref, err := registry.ParseRef(args[0])
-			// Hand back an id that names no feature
-			if err != nil {
-				return err
-			}
-			s, err := new(registry.Resolver).Resolve(cmd.Context(), ref)
+			setups, err := resolveAll(cmd, args)
 			// Hand back a feature its store fails to offer
 			if err != nil {
 				return err
 			}
-			pkg := s.Ref.Package()
 			dir, c, dc, err := loadHome()
 			// Hand back a home that fails to load
 			if err != nil {
 				return err
 			}
-			// Open every host the feature needs
-			for _, h := range s.Hosts {
-				// Name the host that breaks a rule, the files left as they were
-				if err := c.Need(pkg, config.Change{Name: h.Name, Ports: h.Ports, Secret: h.Secret, Inject: h.Inject}); err != nil {
-					return fmt.Errorf("%s needs %s: %s", pkg, h.Name, err.Error())
+			hosts := false
+			// Apply every feature before anything is saved
+			for _, s := range setups {
+				pkg := s.Ref.Package()
+				// Open every host the feature needs
+				for _, h := range s.Hosts {
+					// Name the host that breaks a rule, the files left as they were
+					if err := c.Need(pkg, config.Change{Name: h.Name, Ports: h.Ports, Secret: h.Secret, Inject: h.Inject}); err != nil {
+						return fmt.Errorf("%s needs %s: %s", pkg, h.Name, err.Error())
+					}
 				}
-			}
-			dc.SetFeature(pkg, s.Ref.String(), s.Options)
-			// Set every variable the feature brings
-			for _, e := range s.Env {
-				dc.SetEnv(e.Name, e.Value)
+				hosts = hosts || len(s.Hosts) > 0
+				dc.SetFeature(pkg, s.Ref.String(), s.Options)
+				// Set every variable the feature brings
+				for _, e := range s.Env {
+					dc.SetEnv(e.Name, e.Value)
+				}
 			}
 			// Hand back a home that fails to save
 			if err := saveHome(dir, c, dc); err != nil {
@@ -67,32 +67,69 @@ func newFeatureAdd() *cobra.Command {
 				return err
 			}
 			out := cmd.OutOrStdout()
-			lines, waiting := addLines(s, store)
-			// Show what the feature brings, unless the menu showed it already
-			if !noPreview {
-				// Print every line of the change
-				for _, line := range lines {
-					fmt.Fprintln(out, line)
+			var waiting []string
+			// Show what each feature brings, and collect the secrets they wait for
+			for _, s := range setups {
+				lines, wait := addLines(s, store)
+				// Show the change, unless the menu showed it already
+				if !noPreview {
+					// Print every line of the change
+					for _, line := range lines {
+						fmt.Fprintln(out, line)
+					}
+				}
+				fmt.Fprintf(out, "Added %s\n", s.Ref.Package())
+				// Name each waiting secret once
+				for _, name := range wait {
+					// Keep a secret named already out of the list
+					if !slices.Contains(waiting, name) {
+						waiting = append(waiting, name)
+					}
 				}
 			}
-			fmt.Fprintf(out, "Added %s\n", pkg)
 			// Name how to give each waiting secret its value
 			for _, name := range waiting {
 				fmt.Fprintf(out, "⚠ %s waits for its value: echo \"$TOKEN\" | o3s secret add %s\n", name, name)
 			}
 			// Restart the stack where the allowlist changed
-			if len(s.Hosts) > 0 {
+			if hosts {
 				// Hand back a stack that fails to restart
 				if err := restartStack(cmd, dir); err != nil {
 					return err
 				}
 			}
-			fmt.Fprintln(out, "Rebuild the cage to install it")
+			// Name the rebuild that installs the feature, or the features
+			if len(setups) == 1 {
+				fmt.Fprintln(out, "Rebuild the cage to install it")
+				return nil
+			}
+			fmt.Fprintln(out, "Rebuild the cage to install them")
 			return nil
 		},
 	}
 	previewFlag(cmd, &noPreview)
 	return cmd
+}
+
+// resolveAll resolves every feature id against its store, before any of them changes the home.
+func resolveAll(cmd *cobra.Command, ids []string) ([]registry.Setup, error) {
+	var r registry.Resolver
+	setups := make([]registry.Setup, 0, len(ids))
+	// Resolve every id in the order given
+	for _, id := range ids {
+		ref, err := registry.ParseRef(id)
+		// Hand back an id that names no feature
+		if err != nil {
+			return nil, err
+		}
+		s, err := r.Resolve(cmd.Context(), ref)
+		// Hand back a feature its store fails to offer
+		if err != nil {
+			return nil, err
+		}
+		setups = append(setups, s)
+	}
+	return setups, nil
 }
 
 // newFeatureRm builds the command that removes a feature with its env and the hosts it alone needs.
