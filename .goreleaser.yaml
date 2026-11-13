@@ -11,7 +11,7 @@
 version: 2
 
 builds:
-  # The CLI, static and stripped, naming the version it was released at
+  # The CLI, static and stripped, naming the version it was released at and the digests of its images
   - id: o3s
     main: ./cmd/o3s
     binary: o3s
@@ -26,6 +26,8 @@ builds:
       - -trimpath
     ldflags:
       - -s -w -X main.version={{ .Version }}
+      - -X main.cageDigest={{ envOrDefault "O3S_CAGE_DIGEST" "" }}
+      - -X main.gatewayDigest={{ envOrDefault "O3S_GATEWAY_DIGEST" "" }}
 
 archives:
   # Each binary as it is, named after the platform it runs on
