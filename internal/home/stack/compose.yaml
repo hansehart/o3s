@@ -89,7 +89,8 @@ services:
   # Sole path to the internet for the cage.
   gateway:
     image: ghcr.io/hansehart/o3s-gateway:latest
-    pull_policy: always
+    # Each release pins its own tag, so only pull the gateway image when absent
+    pull_policy: missing
     # Required to manage iptables/ipset and route/NAT the cage network
     cap_add:
       - NET_ADMIN
