@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.2](https://github.com/hansehart/o3s/compare/v0.7.1...v0.7.2) (2026-11-13)
+
+
+### Features
+
+* **cli:** add several features at once ([#228](https://github.com/hansehart/o3s/issues/228)) ([5a3b6b7](https://github.com/hansehart/o3s/commit/5a3b6b7be29fb4921fe6390233c9853bcc6ff42e))
+
 ## [0.7.1](https://github.com/hansehart/o3s/compare/v0.7.0...v0.7.1) (2026-11-13)
 
 
