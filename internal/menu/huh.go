@@ -19,23 +19,32 @@ type Huh struct {
 	Out io.Writer
 }
 
-// Ask shows one question as a form, reading Esc as a step back and Ctrl+C as leaving.
+// Ask shows one question as a form, or a multi-select in the picker, reading Esc as a step back and Ctrl+C as leaving.
 func (h Huh) Ask(q Question) ([]string, error) {
 	var single string
-	var multi []string
 	var ok bool
 	// Start with the answer the question offers
 	if len(q.Default) > 0 {
-		single, multi = q.Default[0], q.Default
+		single = q.Default[0]
 	}
 	// Show the change the question is about
 	for _, line := range q.Preview {
 		fmt.Fprintln(h.Out, line)
 	}
+	// Ask a multi-select in the picker, which filters and marks in one go
+	if q.Kind == Multi {
+		answer, err := Pick(q, h.In, h.Out)
+		// Hand back a step back, a leave, or a picker that fails
+		if err != nil {
+			return nil, err
+		}
+		fmt.Fprintln(h.Out, collapse(q, answer))
+		return answer, nil
+	}
 	interrupted := false
 	keys := huh.NewDefaultKeyMap()
 	keys.Quit = key.NewBinding(key.WithKeys("esc", "ctrl+c"))
-	form := huh.NewForm(huh.NewGroup(field(q, &single, &multi, &ok))).
+	form := huh.NewForm(huh.NewGroup(field(q, &single, &ok))).
 		WithKeyMap(keys).
 		WithShowHelp(false).
 		WithProgramOptions(tea.WithInput(h.In), tea.WithOutput(h.Out), tea.WithFilter(func(_ tea.Model, msg tea.Msg) tea.Msg {
@@ -58,7 +67,7 @@ func (h Huh) Ask(q Question) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	answer := answerOf(q.Kind, single, multi, ok)
+	answer := answerOf(q.Kind, single, ok)
 	// Take the default where the user left an input with one empty
 	if q.Kind == Input && len(q.Default) > 0 && answer[0] == "" {
 		answer = q.Default
@@ -68,11 +77,9 @@ func (h Huh) Ask(q Question) ([]string, error) {
 }
 
 // field builds the form field that asks a question, writing its answer into the values given.
-func field(q Question, single *string, multi *[]string, ok *bool) huh.Field {
+func field(q Question, single *string, ok *bool) huh.Field {
 	// Build the field of the question's kind
 	switch q.Kind {
-	case Multi:
-		return huh.NewMultiSelect[string]().Title(q.Title).Options(options(q, *multi)...).Filterable(true).Value(multi)
 	case Input:
 		// Ask with the default in brackets, the field empty so a plain Enter keeps it
 		if len(q.Default) > 0 {
@@ -84,7 +91,7 @@ func field(q Question, single *string, multi *[]string, ok *bool) huh.Field {
 		return huh.NewInput().Title(q.Title).EchoMode(huh.EchoModePassword).Value(single)
 	case Confirm:
 		return huh.NewConfirm().Title(q.Title).Affirmative("Yes").Negative("No").Value(ok)
-	case Select:
+	case Select, Multi:
 		return huh.NewSelect[string]().Title(q.Title).Options(options(q, nil)...).Filtering(true).Value(single)
 	}
 	return huh.NewInput().Title(q.Title).Value(single)
@@ -111,19 +118,14 @@ func options(q Question, chosen []string) []huh.Option[string] {
 }
 
 // answerOf hands back the values a field of a kind collected.
-func answerOf(kind Kind, single string, multi []string, ok bool) []string {
-	// Read the values of the field's kind
-	switch kind {
-	case Multi:
-		return multi
-	case Confirm:
-		// Answer yes or no
-		if ok {
-			return []string{yes}
-		}
+func answerOf(kind Kind, single string, ok bool) []string {
+	// Answer a confirmation with yes or no
+	if kind == Confirm && ok {
+		return []string{yes}
+	}
+	// Answer a declined confirmation with no
+	if kind == Confirm {
 		return []string{"no"}
-	case Select, Input, Hidden:
-		return []string{strings.TrimSpace(single)}
 	}
 	return []string{strings.TrimSpace(single)}
 }

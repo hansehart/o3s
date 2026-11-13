@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -171,5 +172,73 @@ func TestMenuLookupShowsWhatLeavesWithAFeature(t *testing.T) {
 	// Require the installed feature on offer
 	if diff := cmp.Diff([]string{pkg}, menuHome(t.Context()).Features); diff != "" {
 		t.Errorf("menuHome().Features (-want +got):\n%s", diff)
+	}
+}
+
+// scripted answers each question with the next answer, then steps back.
+type scripted struct {
+	answers [][]string
+}
+
+// Ask hands back the next answer, or a step back once the script ends.
+func (s *scripted) Ask(menu.Question) ([]string, error) {
+	// Step back once every answer is given
+	if len(s.answers) == 0 {
+		return nil, menu.ErrBack
+	}
+	a := s.answers[0]
+	s.answers = s.answers[1:]
+	return a, nil
+}
+
+// aSession is a session on a scripted user, recording each command, each wait and each read of the home.
+func aSession(answers ...[]string) (*session, *[][]string, *int, *int) {
+	var ran [][]string
+	var pauses, reads int
+	return &session{
+		ask:   &scripted{answers: answers},
+		pause: func() error { pauses++; return nil },
+		home:  func() menu.Home { reads++; return menu.Home{Dir: "/home/ubuntu/o3s"} },
+		run:   func(args []string, _ io.Reader) int { ran = append(ran, args); return 0 },
+		out:   io.Discard,
+	}, &ran, &pauses, &reads
+}
+
+// The menu stays open after each action, reads the home anew for each dialog, and closes on a step back.
+func TestSessionRunsDialogsUntilTheUserLeaves(t *testing.T) {
+	s, ran, pauses, reads := aSession([]string{"firewall"}, []string{"ls"}, []string{"store"}, []string{"ls"})
+
+	code := s.loop()
+
+	want := [][]string{{"firewall", "ls"}, {"store", "ls"}}
+	// Report commands that differ
+	if diff := cmp.Diff(want, *ran); diff != "" {
+		t.Errorf("commands (-want +got):\n%s", diff)
+	}
+	// Require a wait after each action and a fresh home for each dialog
+	if code != 0 || *pauses != 2 || *reads != 3 {
+		t.Errorf("loop() = %d with %d waits and %d reads, want 0, 2, 3", code, *pauses, *reads)
+	}
+}
+
+// The shell and the update may replace o3s with another process, so the session hands them the terminal and ends.
+func TestSessionEndsWithACommandThatTakesOver(t *testing.T) {
+	tests := [][][]string{
+		{{"cage"}, {"shell"}, {"store"}, {"ls"}},
+		{{"update"}, {"store"}, {"ls"}},
+	}
+	want := [][][]string{{{"cage", "shell"}}, {{"update"}}}
+	// Run every dialog that takes over
+	for i, answers := range tests {
+		s, ran, pauses, _ := aSession(answers...)
+		left := false
+		s.leave = func() { left = true }
+
+		s.loop()
+
+		// Require the command as the last one, the screen handed back first, without a wait
+		if diff := cmp.Diff(want[i], *ran); diff != "" || *pauses != 0 || !left {
+			t.Errorf("commands (-want +got):\n%s, %d waits, left %v", diff, *pauses, left)
+		}
 	}
 }
