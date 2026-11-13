@@ -94,57 +94,15 @@ o3s update
 
 ### Security
 
-You keep the whole policy in one file, `o3s.json`, and change it with `o3s firewall`:
-
-```json
-{
-  "hosts": [
-    { "name": "github.com", "ports": [22, 443], "by": ["user"] },
-    { "name": "api.example.com", "ports": [443], "secret": "EXAMPLE_TOKEN", "inject": ["header"], "by": ["user"] }
-  ]
-}
-```
-
-A host is a domain, a wildcard like `*.docker.io` that covers every subdomain, an IPv4 address or an IPv4 range. Every host names its ports, and a host with a secret carries it in its requests' headers, or in the query or body it names. Each change restarts the gateway and the proxy, so the cage reaches the new policy at once. The value of a secret stays on the host in `~/.config/o3s/secrets.env`. The cage sees only a stand-in, which the proxy swaps for the value on the way out.
+You decide in one file, `o3s.json`, which hosts the cage reaches and which secrets it uses. Their values stay on the host, and the proxy injects them on the way out.
 
 ### Productivity
 
-You list every project in one file, `~/o3s/o3s.code-workspace`, one folder per repository or worktree:
-
-```json
-"folders": [
-  { "name": "devcontainer-features", "path": "/home/ubuntu/projects/devcontainer-features" },
-  { "name": "infra",                 "path": "/home/ubuntu/projects/infra" },
-  { "name": "infra.worktrees",       "path": "/home/ubuntu/projects/infra.worktrees" },
-  { "name": "malea-backend",         "path": "/home/ubuntu/projects/malea-backend" },
-  { "name": "malea-docs",            "path": "/home/ubuntu/projects/malea-docs" },
-  { "name": "malea-graph",           "path": "/home/ubuntu/projects/malea-graph" },
-  { "name": "malea-web",             "path": "/home/ubuntu/projects/malea-web" },
-  { "name": "works-on-my-machine",   "path": "/home/ubuntu/projects/works-on-my-machine" }
-]
-```
-
-Open it and every repository lands in one source-control view, worktrees nested under the repository they came from:
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/workspace-dark.png">
-    <img src=".github/assets/workspace.png" alt="Several repositories in one o3s source-control view, each on its own branch, with worktrees nested under the repository they came from" width="100%">
-  </picture>
-</p>
-
-Add the agents and tools you need as features, then run whatever agent you like, several at once, each on its own branch. They work in parallel without colliding, and everything lands in one place for you to review.
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/agents-dark.png">
-    <img src=".github/assets/agents.png" alt="Claude Code and Codex CLI running in four panes at once inside one o3s dev container" width="100%">
-  </picture>
-</p>
+One workspace holds all your projects and worktrees, so several agents work side by side, each on its own branch. Everything lands in one view for you to review.
 
 ### Velocity
 
-Break early, fix earlier, ship earliest. Rootless Docker and minikube run inside the cage, so an agent can stand up your whole stack, break it, and stand it up again without touching anything real. The stack behaves like production, and the loop from failure to the next attempt stays short.
+Break early, fix earlier, ship earliest. Rootless Docker and minikube run inside the cage, so an agent stands up your whole stack, breaks it and stands it up again without touching anything real.
 
 ## References
 
