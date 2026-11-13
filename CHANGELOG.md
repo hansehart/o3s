@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/hansehart/o3s/compare/v0.7.0...v0.7.1) (2026-11-13)
+
+
+### Bug Fixes
+
+* **repo:** install the devcontainer CLI on a bare home ([#226](https://github.com/hansehart/o3s/issues/226)) ([fbd4662](https://github.com/hansehart/o3s/commit/fbd466258688b282078189feadcd3a6334600047))
+
 ## [0.7.0](https://github.com/hansehart/o3s/compare/v0.6.6...v0.7.0) (2026-11-13)
 
 
