@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.3](https://github.com/hansehart/o3s/compare/v0.7.2...v0.7.3) (2026-11-13)
+
+
+### Features
+
+* **cli:** keep the menu open in its own screen ([#230](https://github.com/hansehart/o3s/issues/230)) ([fbb2a7a](https://github.com/hansehart/o3s/commit/fbb2a7ab608819dc0381294f8e1d536e399d892e))
+
 ## [0.7.2](https://github.com/hansehart/o3s/compare/v0.7.1...v0.7.2) (2026-11-13)
 
 
