@@ -164,14 +164,15 @@ func Images(dir string) ([]ImageChange, error) {
 	return changes, nil
 }
 
-// tagOf reads the tag a compose file gives an image.
+// tagOf reads the tag a compose file gives an image, without its digest.
 func tagOf(compose []byte, image string) string {
 	// Look at every line for the image
 	for line := range strings.Lines(string(compose)) {
 		_, rest, ok := strings.Cut(line, "image: "+image+":")
-		// Take the tag up to the end of the line
+		// Take the tag up to the digest or the end of the line
 		if ok {
-			return strings.TrimSpace(rest)
+			tag, _, _ := strings.Cut(strings.TrimSpace(rest), "@")
+			return tag
 		}
 	}
 	return ""

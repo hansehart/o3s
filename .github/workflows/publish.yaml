@@ -61,6 +61,7 @@ jobs:
           sbom: true
 
   binaries:
+    needs: publish
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -79,13 +80,27 @@ jobs:
           go-version-file: go.mod
           cache: false
 
-      # build the binaries and their checksums, and attach them to the release
+      # read the digest of each image the publish job pushed, which the binaries pin the stack to
+      - name: Read the images' digests
+        id: digests
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          for image in cage gateway; do
+            digest="$(docker buildx imagetools inspect "ghcr.io/hansehart/o3s-${image}:${TAG#v}" --format '{{.Manifest.Digest}}')"
+            echo "${digest}" | grep -Eq '^sha256:[0-9a-f]{64}$'
+            echo "${image}=${digest}" >> "${GITHUB_OUTPUT}"
+          done
+
+      # build the binaries and their checksums, each carrying the images' digests, and attach them to the release
       - uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
           version: v2.20.1
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          O3S_CAGE_DIGEST: ${{ steps.digests.outputs.cage }}
+          O3S_GATEWAY_DIGEST: ${{ steps.digests.outputs.gateway }}
 
       # sign the provenance of every binary, so a download can be checked against this build
       - uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
@@ -112,6 +127,16 @@ jobs:
       # require the installed binary to name the release it came from
       - name: Check the version
         run: test "$("${HOME}/.local/bin/o3s" --version)" = "o3s version ${TAG#v}"
+
+      # require a fresh home to start the exact images this release pushed
+      - name: Check the pinned images
+        run: |
+          cd "$(mktemp -d)"
+          "${HOME}/.local/bin/o3s" init >/dev/null
+          for image in cage gateway; do
+            digest="$(docker buildx imagetools inspect "ghcr.io/hansehart/o3s-${image}:${TAG#v}" --format '{{.Manifest.Digest}}')"
+            grep -q "image: ghcr.io/hansehart/o3s-${image}:${TAG#v}@${digest}$" .devcontainer/compose.yaml
+          done
 
       # require a fresh home on the latest release to need nothing, which reads the real latest release
       - name: Check the update

@@ -8,6 +8,9 @@ import (
 // Version is the version a release build sets, and empty in any other build.
 var Version string
 
+// Digests are the digests of the images a release build was built with, by image, and empty in any other build.
+var Digests map[string]string
+
 // version names the running build.
 func version() string {
 	info, _ := debug.ReadBuildInfo()
