@@ -165,6 +165,36 @@ func TestInitPinsTheImagesToTheRelease(t *testing.T) {
 	}
 }
 
+// Every image of a new home's stack is pulled once per version, so a start needs no download.
+func TestInitPullsEachImageOnlyWhenMissing(t *testing.T) {
+	dir := anInitializedHome(t)
+
+	data, err := os.ReadFile(filepath.Join(dir, ".devcontainer", "compose.yaml"))
+
+	// Stop when the compose file fails to read
+	if err != nil {
+		t.Fatalf("ReadFile() = %v", err)
+	}
+	policies := 0
+	// Check every pull policy the stack names
+	for line := range strings.SplitSeq(string(data), "\n") {
+		policy, ok := strings.CutPrefix(strings.TrimSpace(line), "pull_policy:")
+		// Pass over every other line
+		if !ok {
+			continue
+		}
+		policies++
+		// Report a policy that pulls on every start
+		if strings.TrimSpace(policy) != "missing" {
+			t.Errorf("compose pulls with %q, want missing", strings.TrimSpace(policy))
+		}
+	}
+	// Require a policy on each of the three images
+	if policies != 3 {
+		t.Errorf("compose names %d pull policies, want 3", policies)
+	}
+}
+
 // A home holds the stack alone, while the templates the binary seeds from stay in the binary.
 func TestInitLeavesTheTemplatesInTheBinary(t *testing.T) {
 	dir := anInitializedHome(t)
