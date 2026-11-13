@@ -98,11 +98,11 @@ You decide in one file, `o3s.json`, which hosts the cage reaches and which secre
 
 ### Productivity
 
-One workspace holds all your projects and worktrees, so several agents work side by side, each on its own branch. Everything lands in one view for you to review.
+Several agents work side by side, each on its own branch or worktree. Everything lands in one view for you to review.
 
 ### Velocity
 
-Fail fast, fix faster, ship fastest. Rootless Docker and minikube run inside the cage, so an agent stands up your whole stack, breaks it and stands it up again without touching anything real.
+Fail fast, fix faster, ship fastest. Your agents see every repository at once, the best context they can get. With rootless Docker and minikube they run your whole stack inside the cage, break it and bring it back without touching anything real.
 
 ## References
 
