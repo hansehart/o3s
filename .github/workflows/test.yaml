@@ -32,6 +32,13 @@ jobs:
       - name: Require AppArmor
         run: aa-enabled
 
+      # install the latest release with this branch's install.sh into a fresh home, the devcontainer CLI included, the way a bare machine does
+      - name: Install o3s on a bare home
+        run: |
+          home="$(mktemp -d)"
+          HOME="${home}" sh install.sh
+          "${home}/.local/share/o3s/devcontainers/bin/devcontainer" --version
+
       # install the Go toolchain the module names
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
