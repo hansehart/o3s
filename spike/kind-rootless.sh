@@ -52,11 +52,15 @@ waits() {
 cage "docker run -d --name cage-a ${CAGE_OPTS} ${PROXY} cage-kr /usr/local/libexec/docker-in-docker/docker-init.sh sleep infinity" >/dev/null
 check "A: the cage's rootless engine answers" waits 'docker exec -u ubuntu cage-a docker -H unix:///run/docker-rootless.sock info'
 check "A: kind raises a cluster on the rootless engine" kind_in cage-a unix:///run/docker-rootless.sock
-cage 'docker exec cage-a tail -5 /tmp/dockerd.log; docker rm -f cage-a' >/dev/null 2>&1
+echo "--- A logs"
+cage 'docker ps -a --filter name=cage-a --format "{{.Status}}"; docker logs --tail 30 cage-a 2>&1; docker exec cage-a tail -40 /tmp/dockerd.log 2>&1; docker rm -f cage-a >/dev/null'
 
 # B: systemd as the cage's init, the engine a user service with delegated cgroups
 cage "docker run -d --name cage-b ${CAGE_OPTS} ${PROXY} --cgroupns=private --tmpfs /run --tmpfs /run/lock --stop-signal SIGRTMIN+3 cage-kr /sbin/init" >/dev/null
 check "B: systemd runs the dev user's session" waits 'docker exec cage-b systemctl is-active user@1000.service'
+echo "--- B logs"
+cage 'docker ps -a --filter name=cage-b --format "{{.Status}}"; docker logs --tail 40 cage-b 2>&1'
+cage 'sudo journalctl -k --no-pager | grep -i -E "apparmor=.DENIED|audit" | tail -20'
 cage 'docker exec cage-b systemctl --no-pager --failed; docker exec cage-b cat /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/cgroup.controllers'
 check "B: the rootless engine installs as a user service" cage 'docker exec -u ubuntu -e XDG_RUNTIME_DIR=/run/user/1000 -e DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus cage-b dockerd-rootless-setuptool.sh install'
 check "B: kind raises a cluster on the rootless engine" kind_in cage-b unix:///run/user/1000/docker.sock
