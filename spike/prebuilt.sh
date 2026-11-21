@@ -120,7 +120,7 @@ bench "build the prepared image" $((SECONDS - t0)) s
 bench "prepared image size" "$(du -m "${WORK}/prepared.qcow2" | cut -f1)" MiB
 
 # B: the prepared image, with cloud-init still taking the seed of a new instance
-for run in ${B_RUNS:-1 2 3}; do
+for run in ${B_RUNS-1 2 3}; do
   qemu-img create -q -f qcow2 -b "${WORK}/prepared.qcow2" -F qcow2 "${WORK}/b.qcow2" 30G
   t0=${SECONDS}
   b=$(boot "${WORK}/b.qcow2" "$(seed "b${run}")") || { bench "prepared: boot to ssh" FAIL s; continue; }
