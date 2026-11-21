@@ -28,7 +28,8 @@ COPY f /tmp/feature
 RUN cd /tmp/feature && _REMOTE_USER=ubuntu _REMOTE_USER_HOME=/home/ubuntu bash install.sh >/dev/null
 RUN curl -fsSLo /usr/local/bin/kind https://github.com/kubernetes-sigs/kind/releases/download/v0.33.0/kind-linux-amd64 \
  && echo "aee6151561422756b764a4ae28e7f44cda5af5a9eead3cc9985112b1de8d8e0d  /usr/local/bin/kind" | sha256sum -c && chmod +x /usr/local/bin/kind \
- && mkdir -p /var/lib/systemd/linger && touch /var/lib/systemd/linger/ubuntu
+ && mkdir -p /var/lib/systemd/linger && touch /var/lib/systemd/linger/ubuntu \\
+ && install -d -o ubuntu -g ubuntu /home/ubuntu/.local /home/ubuntu/.local/share /home/ubuntu/.local/share/docker
 DOCKERFILE
 check "the cage image builds with the feature, systemd and kind" cage 'docker build -q --network host --build-arg http_proxy=http://127.0.0.1:3128 --build-arg https_proxy=http://127.0.0.1:3128 -t cage-kr /tmp/kr'
 # Tag the node image the VM's engine holds, to hand it to the rootless engines without a pull
