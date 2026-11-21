@@ -1,0 +1,46 @@
+name: Spike kind rootless
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - spike/kind-rootless
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    # boot a cage VM with no network device and prove its one link, vsock, carries its allowed traffic alone
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      # check out the scripts and the VM template
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # install QEMU, the allow-list proxy and the seed tool, and hand the runner user KVM and vsock
+      - name: Set up QEMU, KVM and vsock
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils tinyproxy cloud-image-utils
+          sudo systemctl stop tinyproxy
+          sudo modprobe kvm
+          sudo modprobe vhost_vsock
+          sudo chown "${USER}" /dev/kvm /dev/vhost-vsock
+
+      # run the spike and keep its log for the summary
+      - name: Run the vsock spike
+        shell: bash
+        run: EXTRA=kind-rootless.sh bash spike/vsock.sh 2>&1 | tee spike.log
+
+      # write each check's outcome and duration into the run's summary
+      - name: Summarize
+        if: always()
+        run: |
+          {
+            echo "### kind on a rootless engine in the cage"
+            echo "| check | result | time |"
+            echo "|---|---|---|"
+            grep '^RESULT' spike.log | sed 's/^RESULT //' || true
+          } >> "${GITHUB_STEP_SUMMARY}"

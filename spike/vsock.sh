@@ -38,7 +38,7 @@ CONF
 tinyproxy -v
 tinyproxy -c "${WORK}/tinyproxy.conf"
 # Carry the cage VM's vsock connections on port 3128 to the proxy
-python3 "${SPIKE}/vsock-relay.py" host 3128 3128 &
+python3 "${SPIKE}/vsock-relay.py" host 3128 3128 >/dev/null 2>&1 &
 
 bash "${SPIKE}/vsock-seed.sh" "${WORK}"
 cloud-localds "${WORK}/seed.img" "${WORK}/user-data" "${WORK}/meta-data"
@@ -51,3 +51,6 @@ qemu-system-x86_64 -machine q35,accel=kvm -cpu host -smp 2 -m 6G -nic none \
 . "${SPIKE}/vsock-checks.sh"
 echo "--- console"
 tail -40 "${WORK}/console.log"
+
+# Run an extra spike against the booted cage VM when one is named
+[ -n "${EXTRA:-}" ] && . "${SPIKE}/${EXTRA}"

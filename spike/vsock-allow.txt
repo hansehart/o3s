@@ -5,3 +5,4 @@
 (^|\.)docker\.com$
 (^|\.)cloudflarestorage\.com$
 (^|\.)amazonaws\.com$
+(^|\.)ghcr\.io$
