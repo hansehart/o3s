@@ -120,7 +120,7 @@ bench "build the prepared image" $((SECONDS - t0)) s
 bench "prepared image size" "$(du -m "${WORK}/prepared.qcow2" | cut -f1)" MiB
 
 # B: the prepared image, with cloud-init still taking the seed of a new instance
-for run in 1 2 3; do
+for run in ${B_RUNS:-1 2 3}; do
   qemu-img create -q -f qcow2 -b "${WORK}/prepared.qcow2" -F qcow2 "${WORK}/b.qcow2" 30G
   t0=${SECONDS}
   b=$(boot "${WORK}/b.qcow2" "$(seed "b${run}")") || { bench "prepared: boot to ssh" FAIL s; continue; }
@@ -134,7 +134,8 @@ done
 # Make the image that needs no seed: cloud-init off, the key and services already in place
 qemu-img create -q -f qcow2 -b "${WORK}/prepared.qcow2" -F qcow2 "${WORK}/c-build.qcow2" 30G
 boot "${WORK}/c-build.qcow2" "$(seed cbuild)" >/dev/null
-cage 'sudo touch /etc/cloud/cloud-init.disabled'
+timeout 60 cage 'systemd-analyze critical-chain --no-pager | head -25; systemd-analyze blame --no-pager | head -10'
+cage 'sudo touch /etc/cloud/cloud-init.disabled && sudo systemctl mask systemd-networkd-wait-online.service'
 halt
 qemu-img convert -O qcow2 "${WORK}/c-build.qcow2" "${WORK}/baked.qcow2"
 
@@ -146,7 +147,6 @@ for run in 1 2 3; do
   bench "baked: boot to ssh" "${b}" s
   bench "baked: kind create and delete" "$(timed "${KIND}")" s
   bench "baked: start to first cluster" $((SECONDS - t0)) s
-  timeout 20 cage systemd-analyze 2>/dev/null | head -1
-  timeout 20 cage 'systemd-analyze blame | head -8'
+  timeout 60 cage 'systemd-analyze --no-pager; systemd-analyze critical-chain --no-pager | head -25'
   halt
 done
