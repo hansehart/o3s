@@ -60,3 +60,10 @@ func Exec(tb testing.TB, service string, command ...string) (string, error) {
 	tb.Helper()
 	return compose(tb.Context(), tb, append([]string{"exec", "-T", service}, command...)...)
 }
+
+// Compose runs docker compose on the stack of the test's home with the dev overlay, such as stop or start on one of
+// its services, and hands back what it printed.
+func Compose(tb testing.TB, args ...string) (string, error) {
+	tb.Helper()
+	return compose(tb.Context(), tb, args...)
+}

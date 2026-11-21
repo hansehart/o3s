@@ -1,0 +1,30 @@
+name: Rulesets
+# check that the repository's rulesets match the files of .github/rulesets, which an admin applies, after every change
+# to them on main: it fails until the change is applied. It runs without admin rights, so it leaves the bypass actors uncompared.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - .github/rulesets/**
+      - .github/workflows/rulesets.yaml
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # check out the rulesets the repository keeps
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/rulesets
+
+      # compare every live ruleset with its file
+      - name: Check rulesets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/rulesets/rulesets.sh check

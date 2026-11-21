@@ -186,3 +186,45 @@ func Size(text string) (int, int, error) {
 	}
 	return cols, rows, nil
 }
+
+// Lit is the text the screen shows on a background of its own, such as the tab in front, one run of cells per line.
+func (s *Session) Lit() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	var out []string
+	b := s.term.Bounds()
+	// Read every line of the screen
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		var run strings.Builder
+		// Take every cell on a background of its own
+		for x := b.Min.X; x < b.Max.X; x++ {
+			c := s.term.CellAt(x, y)
+			// Keep a cell on a background
+			if c != nil && c.Style.Bg != nil {
+				run.WriteString(c.Content)
+			}
+		}
+		// Keep a line that holds such cells
+		if t := strings.TrimSpace(run.String()); t != "" {
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
+// settled is how long the screen stays the same before a test reads it as drawn.
+const settled = 150 * time.Millisecond
+
+// Settle waits until the screen stays the same for a moment, and reports whether it did within Wait.
+func (s *Session) Settle() bool {
+	last, since := s.Screen(), time.Now()
+	return Within(func() bool {
+		now := s.Screen()
+		// Start the moment over where the screen changed
+		if now != last {
+			last, since = now, time.Now()
+			return false
+		}
+		return time.Since(since) >= settled
+	})
+}

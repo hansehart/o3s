@@ -183,6 +183,12 @@ func (l menuLookup) Remove(pkg string) (menu.Preview, error) {
 	return menu.Preview{Lines: rmLines(pkg, r), Features: 1, Hosts: len(r.hosts), Env: len(r.env)}, nil
 }
 
+// MenuHome reads what the menu offers from the home in the working folder, the way the menu reads it, for the tests
+// that walk the menu of a real home.
+func MenuHome(ctx context.Context) menu.Home {
+	return menuHome(ctx, newCatalogs(ctx))
+}
+
 // menuHome reads what the menu offers from the home it runs in, and as much as there is outside one.
 func menuHome(ctx context.Context, cats *catalogs) menu.Home {
 	lookup := menuLookup{ctx: ctx, r: &registry.Resolver{}, cats: cats}

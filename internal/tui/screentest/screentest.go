@@ -1,5 +1,5 @@
-// Package screentest holds the rules every screen of the menu keeps, read from the screen's text alone, so a test
-// checks them the same way on the menu in memory and on o3s in a real terminal.
+// Package screentest holds the rules every screen of the menu and the output of every command keep, read from their
+// text alone, so a test checks them the same way on the menu in memory and on o3s in a real terminal.
 package screentest
 
 import (
@@ -52,4 +52,30 @@ func Breaks(lines []string, width, height int) []string {
 		}
 	}
 	return out
+}
+
+// nextStep is a command the user runs next, as o3s names it.
+var nextStep = regexp.MustCompile(`\bo3s [a-z]`)
+
+// OutputBreaks are the rules what a command printed breaks: a link with a query, a line of the devcontainer CLI's
+// log, and a failure that names no o3s command to run next.
+func OutputBreaks(out string, failed bool) []string {
+	var breaks []string
+	// Note a link with a query
+	if signedURL.MatchString(out) {
+		breaks = append(breaks, "link with a query")
+	}
+	// Check every line of the output
+	for line := range strings.SplitSeq(out, "\n") {
+		// Note a line of the devcontainer CLI's log, once
+		if logLine.MatchString(line) {
+			breaks = append(breaks, "devcontainer log")
+			break
+		}
+	}
+	// Note a failure that names no next step
+	if failed && !nextStep.MatchString(out) {
+		breaks = append(breaks, "no next step")
+	}
+	return breaks
 }

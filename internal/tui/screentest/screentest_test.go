@@ -42,3 +42,30 @@ func TestBreaks(t *testing.T) {
 		})
 	}
 }
+
+// A command's output breaks exactly the rules its text breaks, a failure's next step included.
+func TestOutputBreaks(t *testing.T) {
+	tests := []struct {
+		name   string
+		out    string
+		failed bool
+		want   []string
+	}{
+		{"a success", "Added " + fixture.Repo + "\n", false, nil},
+		{"a failure that names the next step", "error: the firewall blocks " + fixture.Host + ", allow it with: o3s firewall add " + fixture.Host + "\n", true, nil},
+		{"a failure that names none", "error: exit status 1\n", true, []string{"no next step"}},
+		{"a link with a query", "error: get https://" + fixture.Host + "/blob?hmac=" + fixture.SecretValue + ", run o3s update\n", true, []string{"link with a query"}},
+		{"lines of the devcontainer log", "[" + fixture.NowText + "] Start: Run\n[" + fixture.NowText + "] Stop\nAdded " + fixture.Repo + "\n", false, []string{"devcontainer log"}},
+	}
+	// Check every output
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := screentest.OutputBreaks(tt.out, tt.failed)
+
+			// Report other breaks than the output's
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("OutputBreaks() (-want +got):\n%s", diff)
+			}
+		})
+	}
+}

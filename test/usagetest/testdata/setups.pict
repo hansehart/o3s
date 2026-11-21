@@ -1,0 +1,22 @@
+# The setups the usage suite runs o3s on, every two of their values together at least once.
+#
+# Regenerate the table with PICT (github.com/microsoft/pict) at ab76c2548f551fcb46314e58653a1bd1172f3a72:
+#   pict setups.pict /o:2 > setups.golden
+#
+# A value with ~ is a failure: PICT puts each one with every working value, and never two failures together, so one
+# failure never hides another.
+
+# Where the user's terminal is: on the machine, or on it over SSH.
+Session: local, ssh
+
+# The SSH agent the user's session holds.
+Agent: none, host
+
+# The size of the user's terminal.
+Size: 80x24, 80x14, 200x50
+
+# What breaks halfway through.
+Fault: none, ~proxy-down, ~network-cut, ~registry-down, ~agent-gone
+
+# An agent that goes away is one the session held.
+IF [Fault] = "agent-gone" THEN [Agent] = "host";
