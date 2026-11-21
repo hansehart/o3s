@@ -32,7 +32,7 @@ jobs:
       # run the spike and keep its log for the summary
       - name: Run the prebuilt spike
         shell: bash
-        run: bash spike/prebuilt.sh 2>&1 | tee spike.log
+        run: SKIP_STOCK=1 bash spike/prebuilt.sh 2>&1 | tee spike.log
 
       # write each measurement into the run's summary
       - name: Summarize

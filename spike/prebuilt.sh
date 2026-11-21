@@ -15,7 +15,7 @@ mkdir -p "${WORK}"
 
 # Ssh into the cage VM over vsock alone
 cage() {
-  ssh -i "${WORK}/key" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=5 \
+  ssh -i "${WORK}/key" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=5 -o ServerAliveInterval=5 -o ServerAliveCountMax=3 \
     -o ProxyCommand="python3 ${SPIKE}/vsock-relay.py stdio ${CID} 2222" ubuntu@cage "$@"
 }
 
@@ -33,7 +33,8 @@ boot() {
     -device vhost-vsock-pci,guest-cid=${CID} -display none -serial file:"${WORK}/console.log" \
     -pidfile "${WORK}/qemu.pid" -daemonize
   # Try every second for up to 15 minutes
-  until cage true 2>/dev/null; do
+  until timeout 20 ssh -i "${WORK}/key" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR -o ConnectTimeout=5 \
+    -o ProxyCommand="python3 ${SPIKE}/vsock-relay.py stdio ${CID} 2222" ubuntu@cage true 2>/dev/null; do
     [ $((SECONDS - start)) -lt 900 ] || return 1
     sleep 1
   done
@@ -44,8 +45,11 @@ boot() {
 halt() {
   local pid
   pid="$(cat "${WORK}/qemu.pid")"
-  cage sudo systemctl poweroff >/dev/null 2>&1
-  while kill -0 "${pid}" 2>/dev/null; do sleep 1; done
+  timeout 30 ssh -i "${WORK}/key" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR \
+    -o ProxyCommand="python3 ${SPIKE}/vsock-relay.py stdio ${CID} 2222" ubuntu@cage sudo systemctl poweroff >/dev/null 2>&1
+  # Wait up to a minute, then end QEMU
+  for _ in $(seq 60); do kill -0 "${pid}" 2>/dev/null || return 0; sleep 1; done
+  kill "${pid}"
 }
 
 # Seed a fresh instance, so cloud-init runs its first-boot work again
@@ -82,9 +86,11 @@ FilterDefaultDeny Yes
 ConnectPort 443
 CONF
 tinyproxy -c "${WORK}/tinyproxy.conf"
-python3 "${SPIKE}/vsock-relay.py" host 3128 3128 &
+python3 "${SPIKE}/vsock-relay.py" host 3128 3128 >/dev/null 2>&1 &
 bash "${SPIKE}/vsock-seed.sh" "${WORK}"
 
+# A: the stock image, measured already in run 44925617797 unless asked again
+if [ -z "${SKIP_STOCK:-}" ]; then
 # A: the stock image, set up by cloud-init on first boot, then Docker, kind and the node image installed through the proxy
 for run in 1 2 3; do
   qemu-img create -q -f qcow2 -b "${WORK}/base.img" -F qcow2 "${WORK}/a.qcow2" 30G
@@ -95,9 +101,11 @@ for run in 1 2 3; do
   bench "stock: pull the node image" "$(timed docker pull -q "${NODE}")" s
   bench "stock: kind create and delete" "$(timed "${KIND}")" s
   bench "stock: start to first cluster" $((SECONDS - t0)) s
-  cage systemd-analyze 2>/dev/null | head -1
+  timeout 20 cage systemd-analyze 2>/dev/null | head -1
   halt
 done
+
+fi
 
 # Build the prepared image once: the stock image with Docker, kind and the node image, reset for a new instance
 qemu-img create -q -f qcow2 -b "${WORK}/base.img" -F qcow2 "${WORK}/build.qcow2" 30G
@@ -119,7 +127,7 @@ for run in 1 2 3; do
   bench "prepared: boot to ssh" "${b}" s
   bench "prepared: kind create and delete" "$(timed "${KIND}")" s
   bench "prepared: start to first cluster" $((SECONDS - t0)) s
-  cage systemd-analyze 2>/dev/null | head -1
+  timeout 20 cage systemd-analyze 2>/dev/null | head -1
   halt
 done
 
@@ -138,7 +146,7 @@ for run in 1 2 3; do
   bench "baked: boot to ssh" "${b}" s
   bench "baked: kind create and delete" "$(timed "${KIND}")" s
   bench "baked: start to first cluster" $((SECONDS - t0)) s
-  cage systemd-analyze 2>/dev/null | head -1
-  cage 'systemd-analyze blame | head -8'
+  timeout 20 cage systemd-analyze 2>/dev/null | head -1
+  timeout 20 cage 'systemd-analyze blame | head -8'
   halt
 done
